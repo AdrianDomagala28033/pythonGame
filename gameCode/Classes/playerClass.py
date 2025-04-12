@@ -3,11 +3,12 @@ class Player:
 
     def __init__(self):
         self.positionX = 0
-        self.positionY = 0
-        self.image = pygame.image.load("images/player.png")
+        self.positionY = 580
+        self.image = pygame.image.load("./images/player.png")
         self.width = self.image.get_width()
         self.height = self.image.get_height()
         self.speed = 2
+        self.health = 100
         self.hitbox = pygame.Rect(self.positionX, self.positionY, self.width, self.height)
 
     def tick(self, keys):
