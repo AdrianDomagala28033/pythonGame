@@ -25,11 +25,10 @@ def main():
         if clock >= 2:
             clock = 0
             coins.append(Coin())
-
-        player.tick(keys)
-        ghost.tick()
         for coin in coins:
             coin.tick()
+        player.tick(keys)
+        ghost.tick()
 
         for coin in coins:
             if (player.hitbox.colliderect(coin.hitbox)):
@@ -37,19 +36,18 @@ def main():
                 score += 1
         if(player.hitbox.colliderect(ghost.hitbox)):
             player.health -= 10
+            ghost.positionY -= 5
+            player.positionY = 580
+            player.positionX = 0
         window.fill((0, 204, 255))
-        text_image = pygame.font.Font.render(pygame.font.SysFont("arial", 48), f"Score: {score}", True, (0,0,0))
-        text_health = pygame.font.Font.render(pygame.font.SysFont("arial", 48), f"Health: {player.health}", True, (0,0,0))
-        window.blit(text_image, (1100, 0))
-        window.blit(text_health, (0, 0))
+        window.blit(pygame.font.Font.render(pygame.font.SysFont("arial", 48), f"Score: {score}", True, (0,0,0)), (1100, 0))
+        window.blit(pygame.font.Font.render(pygame.font.SysFont("arial", 48), f"Health: {player.health}", True, (0,0,0)), (0, 0))
         for coin in coins:
             coin.draw(window)
         player.draw(window)
         ghost.draw(window)
         ground.draw(window)
         pygame.display.update()
-    print(score)
-
 if __name__ == "__main__":
     main()
 

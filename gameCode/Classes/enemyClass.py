@@ -1,4 +1,5 @@
 import pygame
+from gameCode.Classes.playerClass import Player
 class Enemy:
     def __init__(self):
         self.positionX = 600
@@ -26,3 +27,11 @@ class Enemy:
         elif (self.positionX == 1200):
             self.direction *= -1
             self.image = pygame.image.load("./images/ghost.png")
+    def changeDirection(self):
+        self.direction *= -1
+        self.positionX -= self.speed * self.direction
+        if(self.direction > 0):
+            self.image = pygame.image.load("./images/ghost.png")
+        else:
+            self.image = pygame.image.load("./images/ghost2.png")
+
