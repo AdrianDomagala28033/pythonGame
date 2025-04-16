@@ -1,13 +1,13 @@
 import pygame
+from gameCode.Classes.gameObjectClass import GameObject
 
-class Ground:
-    def __init__(self):
-        self.positionX = 0
-        self.positionY = 670
-        self.image = pygame.image.load("./images/ground.PNG")
-        self.width = self.image.get_width()
-        self.height = self.image.get_height()
+class Ground(GameObject):
+    def __init__(self, x, y, image):
+        self.image = image
+        width = self.image.get_width()
+        height = self.image.get_height()
+        super().__init__(x, y, width, height)
+        self.hitbox = pygame.Rect(self.positionX, self.positionY, self.width, self.height)
 
     def draw(self, window):
-        for x in range(0, 1280, 50):
-            window.blit(self.image, (x, 680))
+        window.blit(self.image, (self.positionX, self.positionY))

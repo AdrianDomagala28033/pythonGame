@@ -1,7 +1,8 @@
 import pygame
 from random import randint
+from gameCode.Classes.gameObjectClass import GameObject
 
-class Coin:
+class Coin(GameObject):
     def __init__(self):
         self.value = 1
         self.positionX = randint(0, 1280)
