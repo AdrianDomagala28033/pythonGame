@@ -16,6 +16,8 @@ class Physic(GameObject):
     def physicTick(self, obstacles):
         if(self.tag == "player"):
             self.movement(obstacles)
+            if self.knockbackTimer > 0:
+                self.knockbackTimer -= 1
         elif(self.tag == "enemy"):
             if self.hitbox.colliderect(obstacles.hitbox):
                 if self.horVelocity > 0:  # poruszamy się w prawo
@@ -24,6 +26,7 @@ class Physic(GameObject):
                     self.positionX = obstacles.hitbox.right
                 self.horVelocity = 0
                 self.hitbox.x = self.positionX
+
     def movement(self, obstacles):
         gravity = 0.7
         self.verVelocity += gravity
