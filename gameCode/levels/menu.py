@@ -1,5 +1,10 @@
+import sys
+
 import pygame
+
+from gameCode.Classes.levelClass import Level
 from gameCode.levels.levelOne import levelOne
+from gameCode.levels.levelTwo import levelTwo
 
 pygame.init()
 clock = pygame.time.Clock()
@@ -18,6 +23,16 @@ def load_fire_frames(sprite_sheet_path, frame_width, frame_height, frame_count, 
     return frames
 
 
+pygame.init()
+window_width = 1280
+window_height = 720
+window = pygame.display.set_mode((window_width, window_height))
+pygame.display.set_caption("Dungeon Escape - Test")
+clock = pygame.time.Clock()
+
+# Załaduj poziom
+
+
 def menu(window):
     run = True
     button = pygame.image.load("./images/playButton.PNG").convert_alpha()
@@ -28,6 +43,7 @@ def menu(window):
     frame_timer = 0
     frame_speed = 5
     frame_direction = 1
+    level = Level([], [], [], [], 0)
     while run:
         clock.tick(60)
         for event in pygame.event.get():
@@ -35,14 +51,14 @@ def menu(window):
                 run = False
         if(event.type == pygame.MOUSEBUTTONDOWN):
             if button_rect.collidepoint(event.pos):
-                levelOne(window)
+                levelTwo(window)
                 run = False
         frame_timer += 1
         if frame_timer >= frame_speed:
             current_frame += frame_direction
 
             if current_frame == len(fire_frames) - 1 or current_frame == 0:
-                frame_direction *= -1  # zmień kierunek
+                frame_direction *= -1  # zmień kierunekLevel
 
             frame_timer = 0
         window.fill((20, 20, 20))

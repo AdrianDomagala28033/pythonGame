@@ -25,14 +25,13 @@ class Projectile(Physic):
     def off_screen(self):
         return self.positionX < 0 or self.positionX > 800  # dostosuj do wielkości ekranu
 
-    def draw(self, window):
+    def draw(self, window, cameraX):
         if not self.active:
-            return  # nie rysuj nieaktywnej strzały
-
+            return
         if self.direction > 0:
-            pygame.draw.rect(window, (255, 0, 0), (self.positionX, self.positionY + 30, 10, 10))
+            pygame.draw.rect(window, (255, 255, 255), (self.positionX - cameraX, self.positionY + 30, 10, 10))
         else:
-            pygame.draw.rect(window, (255, 0, 0), (self.positionX, self.positionY + 30, 10, 10))
+            pygame.draw.rect(window, (255, 255, 255), (self.positionX - cameraX, self.positionY + 30, 10, 10))
         self.update()
     def bulletColision(self, player, enemy):
         for arrow in player.distanceWeapon.projectiles:
@@ -41,7 +40,7 @@ class Projectile(Physic):
             for e in enemy:
                 if arrow.hitbox.colliderect(e.hitbox):
                     arrow.active = False
-                    e.health -= player.distanceWeapon.damage
+                    e.takeDamage(player.distanceWeapon.damage)
                     if e.health <= 0:
                         enemy.remove(e)
                     break

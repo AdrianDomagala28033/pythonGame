@@ -12,3 +12,6 @@ class GameObject:
     def draw(self, surface, color=(200, 200, 200)):
         pygame.draw.rect(surface, color, self.hitbox)
 
+    def draw_relative(self, window, cameraX):
+        window.blit(self.image, (self.positionX - cameraX, self.positionY))
+

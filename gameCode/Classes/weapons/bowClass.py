@@ -1,6 +1,5 @@
 import pygame
-from gameCode.Classes.physicClass import Physic
-from gameCode.Classes.projectileClass import Projectile
+from gameCode.Classes.weapons.projectileClass import Projectile
 
 
 class Bow(Projectile):
