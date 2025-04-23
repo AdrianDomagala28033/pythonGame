@@ -1,6 +1,8 @@
 import pygame
 from math import floor
 
+from gameCode.Classes.equipment.Inventory import Inventory
+from gameCode.Classes.equipment.potions import health_potion
 from gameCode.Classes.physicClass import Physic
 from gameCode.Classes.weapons.bowClass import Bow
 
@@ -26,14 +28,14 @@ class Player(Physic):
         self.invulnerable = False
         self.invulnerable_timer = 0
         self.coins = 0
+        self.inventory = Inventory()
 
 
     def tick(self, keys, grounds, enemy, window, cameraX):
         self.physicTick(self, grounds)
         self.enemyCollision(enemy)
         self.move(keys, window, cameraX)
-
-        self.hitbox = pygame.Rect(self.positionX, self.positionY, self.width, self.height)
+        self.useInventory()
         if self.invulnerable:
             self.invulnerable_timer -= 1
             if self.invulnerable_timer <= 0:
@@ -44,6 +46,7 @@ class Player(Physic):
     def draw(self, window, cameraX):
         self.healthBar(window)
         self.walkAnimation(window, cameraX)
+        self.inventory.drawInventory(window)
 
 
     def healthBar(self, window):
@@ -90,15 +93,34 @@ class Player(Physic):
             self.horVelocity -= self.acc
             self.direction = -1
         if (keys[pygame.K_d] and self.horVelocity < self.maxVelocity):
+
             self.horVelocity += self.acc
             self.direction = 1
         if(keys[pygame.K_SPACE] and self.jumping == False):
             self.verVelocity -= 15
             self.jumping = True
         if(keys[pygame.K_e]):
+            self.inventory.useItem(self)
             self.distanceWeapon.shoot(self.positionX, self.positionY, self.direction, window)
+        if (keys[pygame.K_f]):
+            self.inventory.addItem(health_potion)
         if not (keys[pygame.K_a] or keys[pygame.K_d]):
             if (self.horVelocity > 0):
                 self.horVelocity -= self.acc
             elif(self.horVelocity < 0):
                 self.horVelocity += self.acc
+
+    def useInventory(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_1]:
+            self.inventory.selectedItemIndex = 0
+        elif keys[pygame.K_2]:
+            self.inventory.selectedItemIndex = 1
+        elif keys[pygame.K_3]:
+            self.inventory.selectedItemIndex = 2
+        elif keys[pygame.K_4]:
+            self.inventory.selectedItemIndex = 3
+        elif keys[pygame.K_5]:
+            self.inventory.selectedWeaponIndex = 0
+        elif keys[pygame.K_6]:
+            self.inventory.selectedWeaponIndex = 1

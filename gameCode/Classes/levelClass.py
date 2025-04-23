@@ -4,6 +4,7 @@ from gameCode.Classes.coinClass import Coin
 from gameCode.Classes.groundClass import Ground
 from gameCode.Classes.enemyClass import Enemy
 from gameCode.Classes.playerClass import Player
+from gameCode.Classes.equipment.potions import health_potion
 
 class Level:
     def __init__(self, tiles, player, enemies, coins, width):
@@ -23,6 +24,7 @@ class Level:
 
     def update(self, obstacles, window):
         self.player.tickPosition(self.levelWidth)
+
         for enemy in self.enemies:
             enemy.tick(self.player, obstacles, window)
 
