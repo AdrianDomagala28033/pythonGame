@@ -1,12 +1,10 @@
 import pygame
-from pygame.examples.midi import null_key
 
 from gameCode.Classes.playerClass import Player
-from gameCode.Classes.coinClass import Coin
 from gameCode.Classes.groundClass import Ground
 from gameCode.Classes.enemyClass import Enemy
 
-from gameCode.Classes.levelClass import Level
+from gameCode.Classes.levels.levelClass import Level
 
 pygame.init()
 

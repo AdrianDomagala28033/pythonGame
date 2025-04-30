@@ -29,6 +29,7 @@ class Player(Physic):
         self.invulnerable = False
         self.invulnerable_timer = 0
         self.coins = 0
+        self.hasKey = False
         self.inventory.addWeapon(Sword("Basic Sword", 10, 100, self.direction, "./images/standardSword.PNG"))
         self.inventory.addWeapon(Bow("Basic Bow", 12, 100, self.direction, "./images/standardBow.PNG"))
 

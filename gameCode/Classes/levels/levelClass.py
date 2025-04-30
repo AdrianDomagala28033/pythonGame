@@ -3,17 +3,21 @@ import pygame
 from gameCode.Classes.coinClass import Coin
 from gameCode.Classes.groundClass import Ground
 from gameCode.Classes.enemyClass import Enemy
+from gameCode.Classes.levels.door import Door
+from gameCode.Classes.levels.key import Key
 from gameCode.Classes.playerClass import Player
 from gameCode.Classes.equipment.potions import health_potion
 
 class Level:
-    def __init__(self, tiles, player, enemies, coins, width):
+    def __init__(self, tiles, player, enemies, coins, key, door, width):
         self.tiles = tiles
         self.player = player
         self.enemies = enemies
         self.coins = coins
         self.levelWidth = width
         self.cameraX = 0
+        self.key = key
+        self.door = door
         tileSize = 50
         tileCount = width // tileSize
         self.levelWidth = tileSize * tileCount
@@ -24,6 +28,9 @@ class Level:
 
     def update(self, obstacles, window):
         self.player.tickPosition(self.levelWidth)
+        self.door.tick(self.player)
+        for k in self.key:
+            k.tick(self.player)
 
         for enemy in self.enemies:
             enemy.tick(self.player, obstacles, window)
@@ -44,7 +51,9 @@ class Level:
             window.blit(c.image, (c.positionX - self.cameraX, c.positionY))
             if(c.tick(self.player)):
                 self.coins.remove(c)
-
+        for k in self.key:
+            k.draw(window, self.cameraX)
+        self.door.draw(window, self.cameraX)
 
         window.blit(
             pygame.font.Font.render(pygame.font.SysFont("arial", 48), f"Score: {self.player.coins}", True, (0, 0, 0)), (1000, 0))
@@ -56,6 +65,8 @@ class Level:
         tiles = []
         enemies = []
         coins = []
+        key = []
+        door = Door(0, 0)
         player = None
 
         with open(file_path, "r") as f:
@@ -82,8 +93,12 @@ class Level:
                     enemyImg = pygame.image.load("./images/enemiesAnimation/enemy.png")
                     enemies.append(Enemy(world_x, world_y, enemyImg, "enemy"))
                 elif char == "C":
-                    coinImg = pygame.image.load("./images/coin.png")
                     coins.append(Coin(world_x, world_y))
+                elif char == "K":
+                    key.append(Key(world_x, world_y))
+                elif char == "D":
+                    door = Door(world_x, world_y)
+
 
         level_width = len(lines[0].strip()) * tile_size
-        return cls(tiles, player, enemies, coins, level_width)
+        return cls(tiles, player, enemies, coins, key, door, level_width)

@@ -1,7 +1,7 @@
 import pygame
 import sys
 
-from gameCode.Classes.levelClass import Level  # Upewnij się że ścieżka jest prawidłowa
+from gameCode.Classes.levels.levelClass import Level  # Upewnij się że ścieżka jest prawidłowa
 
 # Inicjalizacja Pygame
 pygame.init()
