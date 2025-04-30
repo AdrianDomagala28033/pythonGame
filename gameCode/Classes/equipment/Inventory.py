@@ -22,6 +22,12 @@ class Inventory:
                 return True
         return False
 
+    def getDistanceWeapon(self):
+        weapon = self.weaponSlots[self.selectedWeaponIndex]
+        return weapon if weapon is not None else None
+    def getSelectedWeapon(self):
+        return self.weaponSlots[self.selectedWeaponIndex]
+
     def useItem(self, player):
         item = self.usableItems[self.selectedItemIndex]
         if item:
@@ -31,7 +37,6 @@ class Inventory:
     def drawInventory(self, window, x = 20, y=20):
         slotSize = 50
         spacing = 10
-        font = pygame.font.SysFont("comicsans", 18)
 
         for i, item in enumerate(self.usableItems):
             rect = pygame.Rect(x + i * (slotSize + spacing), y, slotSize, slotSize)
@@ -39,7 +44,6 @@ class Inventory:
             if i == self.selectedItemIndex:
                 pygame.draw.rect(window, (255, 255, 0), rect, 3, border_radius=5)
             if item:
-                text = font.render(item.name, True, (0, 0, 0))
                 icon = pygame.image.load(item.icon)
                 window.blit(icon, (rect.x, rect.y))
         y += slotSize + spacing + 10
@@ -49,5 +53,5 @@ class Inventory:
             if i == self.selectedWeaponIndex:
                 pygame.draw.rect(window, (0, 255, 0), rect, 3, border_radius=5)
             if weapon:
-                text = font.render(weapon.name, True, (0, 0, 0))
-                window.blit(text, (rect.x + 5, rect.y + 5))
+                icon = pygame.image.load(weapon.icon)
+                window.blit(icon, (rect.x, rect.y))

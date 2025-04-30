@@ -3,7 +3,7 @@ import pygame
 from gameCode.Classes.physicClass import Physic
 
 class Projectile(Physic):
-    def __init__(self,x,y, direction, window):
+    def __init__(self,x,y, direction):
         super().__init__(x, y, 5, 2, 5, 7)
         self.image = pygame.Surface((10, 10), pygame.SRCALPHA)  # Tworzymy przezroczysty Surface
         pygame.draw.rect(self.image, (255, 0, 0), (0, 0, 10, 10))
@@ -29,18 +29,19 @@ class Projectile(Physic):
         if not self.active:
             return
         if self.direction > 0:
-            pygame.draw.rect(window, (255, 255, 255), (self.positionX - cameraX, self.positionY + 30, 10, 10))
+            pygame.draw.rect(window, (255, 255, 255), (self.positionX - cameraX, self.positionY, 10, 10))
         else:
-            pygame.draw.rect(window, (255, 255, 255), (self.positionX - cameraX, self.positionY + 30, 10, 10))
+            pygame.draw.rect(window, (255, 255, 255), (self.positionX - cameraX, self.positionY, 10, 10))
         self.update()
     def bulletColision(self, player, enemy):
-        for arrow in player.distanceWeapon.projectiles:
+        for arrow in player.inventory.getDistanceWeapon().projectiles:
             if not arrow.active:
                 continue
             for e in enemy:
                 if arrow.hitbox.colliderect(e.hitbox):
                     arrow.active = False
-                    e.takeDamage(player.distanceWeapon.damage)
+
+                    e.takeDamage(player.inventory.getDistanceWeapon().damage, player)
                     if e.health <= 0:
                         enemy.remove(e)
                     break

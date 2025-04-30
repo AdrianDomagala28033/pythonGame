@@ -28,6 +28,11 @@ class Level:
         for enemy in self.enemies:
             enemy.tick(self.player, obstacles, window)
 
+        selectedWeapon = self.player.inventory.getSelectedWeapon()
+        if selectedWeapon and selectedWeapon.tag == "bow":
+            for b in selectedWeapon.projectiles:
+                 b.bulletColision(self.player, self.enemies)
+
     def draw(self, window):
         for tile in self.tiles:
             window.blit(tile.image, (tile.positionX - self.cameraX, tile.positionY))
@@ -40,9 +45,7 @@ class Level:
             if(c.tick(self.player)):
                 self.coins.remove(c)
 
-        for s in self.player.distanceWeapon.projectiles:
-            s.draw(window, self.cameraX)
-            s.bulletColision(self.player, self.enemies)
+
         window.blit(
             pygame.font.Font.render(pygame.font.SysFont("arial", 48), f"Score: {self.player.coins}", True, (0, 0, 0)), (1000, 0))
         self.player.draw(window, self.cameraX)
@@ -79,7 +82,6 @@ class Level:
                     enemyImg = pygame.image.load("./images/enemiesAnimation/enemy.png")
                     enemies.append(Enemy(world_x, world_y, enemyImg, "enemy"))
                 elif char == "C":
-                    print("Coin")
                     coinImg = pygame.image.load("./images/coin.png")
                     coins.append(Coin(world_x, world_y))
 

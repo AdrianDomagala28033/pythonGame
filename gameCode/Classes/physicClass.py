@@ -12,6 +12,7 @@ class Physic(GameObject):
         self.jumping = False
         self.lastJump = 0
         super().__init__(x, y, width, height)
+        self.grounded = True
         self.hitbox = pygame.Rect(self.positionX, self.positionY, self.width, self.height)
 
     def physicTick(self,player, obstacles):
@@ -33,6 +34,7 @@ class Physic(GameObject):
         elif(self.tag == "enemy"):
             self.movementX(obstacles)
             self.movementY(obstacles)
+            self.checkBlockUnder(obstacles)
 
     def movementX(self, obstacles):
         gravity = 0.7
@@ -72,12 +74,16 @@ class Physic(GameObject):
     def checkBlockUnder(self, obstacles):
         foot_check_x = self.hitbox.midbottom[0] + (self.direction * self.width // 2)
         foot_check_y = self.hitbox.midbottom[1] + 5  # lekko pod nogami
-
-        grounded = False
+        self.grounded = False
         for obj in obstacles:
             if obj.hitbox.collidepoint(foot_check_x, foot_check_y):
-                grounded = True
+                self.grounded = True
                 break
 
-        if not grounded:
+        if not self.grounded:
             self.direction *= -1
+            if not self.grounded:
+                self.positionX += 1
+
+
+

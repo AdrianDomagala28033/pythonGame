@@ -5,6 +5,7 @@ from gameCode.Classes.equipment.Inventory import Inventory
 from gameCode.Classes.equipment.potions import health_potion
 from gameCode.Classes.physicClass import Physic
 from gameCode.Classes.weapons.bowClass import Bow
+from gameCode.Classes.weapons.swordClass import Sword
 
 
 class Player(Physic):
@@ -22,20 +23,29 @@ class Player(Physic):
         self.tag = "player"
         self.jumping = False
         self.direction = 1
-        self.distanceWeapon = Bow("aa", 12,self.positionX, self.positionY,800, self.direction, window)
+        self.inventory = Inventory()
         self.knockbackTimer = 0
         self.knockbackForce = 10
         self.invulnerable = False
         self.invulnerable_timer = 0
         self.coins = 0
-        self.inventory = Inventory()
+        self.inventory.addWeapon(Sword("Basic Sword", 10, 100, self.direction, "./images/standardSword.PNG"))
+        self.inventory.addWeapon(Bow("Basic Bow", 12, 100, self.direction, "./images/standardBow.PNG"))
+
 
 
     def tick(self, keys, grounds, enemy, window, cameraX):
         self.physicTick(self, grounds)
         self.enemyCollision(enemy)
-        self.move(keys, window, cameraX)
+        self.move(keys, window)
         self.useInventory()
+        selectedWeapon = self.inventory.getSelectedWeapon()
+        if selectedWeapon and selectedWeapon.tag == "sword":
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_q]:
+                weapon = self.inventory.getSelectedWeapon()  # shoot
+                if weapon.tag == "sword":
+                    selectedWeapon.slash(self, enemy)
         if self.invulnerable:
             self.invulnerable_timer -= 1
             if self.invulnerable_timer <= 0:
@@ -47,6 +57,10 @@ class Player(Physic):
         self.healthBar(window)
         self.walkAnimation(window, cameraX)
         self.inventory.drawInventory(window)
+        weapon = self.inventory.getDistanceWeapon()
+        if weapon and weapon.tag == "bow":
+            for proj in weapon.projectiles:
+                proj.draw(window, cameraX)
 
 
     def healthBar(self, window):
@@ -69,7 +83,10 @@ class Player(Physic):
             if self.walkIndex > 5:
                 self.walkIndex = 0
         else:
-            window.blit(self.standImage, (self.positionX - cameraX, self.positionY))
+            if(self.direction < 0):
+                window.blit(pygame.transform.flip(self.standImage, True, False), (self.positionX - cameraX, self.positionY))
+            else:
+                window.blit(self.standImage, (self.positionX - cameraX, self.positionY))
 
     def enemyCollision(self, enemy):
         for e in enemy:
@@ -86,9 +103,14 @@ class Player(Physic):
 
                 self.verVelocity = -5
     def shoot(self, window):
-        self.distanceWeapon.tick(window)
-
-    def move(self, keys, window, cameraX):
+        weapon = self.inventory.getDistanceWeapon()
+        if weapon:
+            weapon.direction = self.direction
+            if(self.direction > 0):
+                weapon.shoot(self.positionX - 10, self.positionY + 30)
+            else:
+                weapon.shoot(self.positionX - 65, self.positionY + 30)
+    def move(self, keys, window):
         if (keys[pygame.K_a] and self.horVelocity > self.maxVelocity * -1):
             self.horVelocity -= self.acc
             self.direction = -1
@@ -99,10 +121,16 @@ class Player(Physic):
         if(keys[pygame.K_SPACE] and self.jumping == False):
             self.verVelocity -= 15
             self.jumping = True
-        if(keys[pygame.K_e]):
+        if(keys[pygame.K_e]): #use item
             self.inventory.useItem(self)
-            self.distanceWeapon.shoot(self.positionX, self.positionY, self.direction, window)
-        if (keys[pygame.K_f]):
+        if keys[pygame.K_c]:
+            weapon = self.inventory.getSelectedWeapon()# shoot
+            if weapon.tag == "bow":
+                self.shoot(window)
+            else:
+                pass
+
+        if (keys[pygame.K_f]): #test
             self.inventory.addItem(health_potion)
         if not (keys[pygame.K_a] or keys[pygame.K_d]):
             if (self.horVelocity > 0):

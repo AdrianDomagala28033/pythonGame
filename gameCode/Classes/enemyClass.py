@@ -22,6 +22,9 @@ class Enemy(Physic):
         self.lastHitTime = 0
         self.healthBarVisibleTime = 1500
         self.tag = tag
+        self.knockbackTimer = 0
+        self.knockbackForce = 10
+        self.invulnerable = False
         self.hitbox = pygame.Rect(self.positionX, self.positionY, self.width, self.height)
 
     def tick(self, player, obstacles, window):
@@ -78,9 +81,31 @@ class Enemy(Physic):
         if currentTime - self.lastHitTime <= self.healthBarVisibleTime:
             pygame.draw.rect(window, (235, 64, 52),(self.positionX - cameraX, self.positionY - 10, self.width * (self.health / 100), 10))
 
-    def takeDamage(self, damage):
-        self.health -= damage
-        self.lastHitTime = pygame.time.get_ticks()
+    def takeDamage(self, damage, player):
+        if(self.tag == "enemy" and self.detectPlayer(player)):
+            self.health -= damage
+            self.lastHitTime = pygame.time.get_ticks()
+        elif self.tag == "ghost":
+            self.health -= damage
+            self.lastHitTime = pygame.time.get_ticks()
+        self.knockbackTimer = 10
+        self.invulnerable = True
+        self.invulnerable_timer = 30
+        self.knockback(player)
+
+    def knockback(self, player):
+        if self.tag == "ghost" and self.grounded == True:
+            if self.positionX < player.positionX:
+                self.horVelocity = self.knockbackForce
+            else:
+                self.horVelocity = -self.knockbackForce
+        elif self.tag == "enemy":
+            if self.positionX < player.positionX:
+                self.positionX -= (self.knockbackForce*4)
+            else:
+                self.positionX += (self.knockbackForce*4)
+
+
 
     def detectPlayer(self, player, window=None, cameraX=0, debug=True):
         rightVision = pygame.Rect(self.positionX, self.positionY, self.visionRange, self.height)
