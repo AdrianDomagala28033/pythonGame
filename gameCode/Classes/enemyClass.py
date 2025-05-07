@@ -64,22 +64,22 @@ class Enemy(Physic):
             self.direction = 1
         self.positionX += self.acc * self.direction
 
-    def draw(self, window, cameraX):
-        self.drawImage(window, cameraX)
-        self.drawHealthbar(window, cameraX)
+    def draw(self, window, cameraX, cameraY):
+        self.drawImage(window, cameraX, cameraY)
+        self.drawHealthbar(window, cameraX, cameraY)
 
-    def drawImage(self, window, cameraX):
+    def drawImage(self, window, cameraX, cameraY):
         drawX = self.positionX - cameraX
         if self.direction < 0:
-            window.blit(self.image, (drawX, self.positionY))
+            window.blit(self.image, (drawX, self.positionY - cameraY))
         else:
             flipped = pygame.transform.flip(self.image, True, False)
-            window.blit(flipped, (drawX, self.positionY))
+            window.blit(flipped, (drawX, self.positionY - cameraY))
 
-    def drawHealthbar(self, window, cameraX):
+    def drawHealthbar(self, window, cameraX, cameraY):
         currentTime = pygame.time.get_ticks()
         if currentTime - self.lastHitTime <= self.healthBarVisibleTime:
-            pygame.draw.rect(window, (235, 64, 52),(self.positionX - cameraX, self.positionY - 10, self.width * (self.health / 100), 10))
+            pygame.draw.rect(window, (235, 64, 52),(self.positionX - cameraX, self.positionY - 10 - cameraY, self.width * (self.health / 100), 10))
 
     def takeDamage(self, damage, player):
         if(self.tag == "enemy" and self.detectPlayer(player)):
@@ -107,15 +107,15 @@ class Enemy(Physic):
 
 
 
-    def detectPlayer(self, player, window=None, cameraX=0, debug=True):
+    def detectPlayer(self, player, window=None, cameraX=0, cameraY=0,debug=True):
         rightVision = pygame.Rect(self.positionX, self.positionY, self.visionRange, self.height)
         leftVision = pygame.Rect(self.positionX - self.visionRange, self.positionY, self.visionRange, self.height)
 
         if debug and window:
             pygame.draw.rect(window, (255, 0, 0),
-                             (rightVision.x - cameraX, rightVision.y, rightVision.width, rightVision.height), 2)
+                             (rightVision.x - cameraX, rightVision.y - cameraY, rightVision.width, rightVision.height), 2)
             pygame.draw.rect(window, (0, 255, 0),
-                             (leftVision.x - cameraX, leftVision.y, leftVision.width, leftVision.height), 2)
+                             (leftVision.x - cameraX, leftVision.y- cameraY, leftVision.width, leftVision.height), 2)
 
         if rightVision.colliderect(player.hitbox) or leftVision.colliderect(player.hitbox):
             self.state = "follow"

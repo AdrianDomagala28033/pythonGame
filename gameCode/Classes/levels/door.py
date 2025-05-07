@@ -18,8 +18,8 @@ class Door:
             return True  # np. sygnał do zmiany poziomu
         return False
 
-    def draw(self, window, cameraX):
-        window.blit(self.image, (self.positionX - cameraX, self.positionY - 30))
+    def draw(self, window, cameraX, cameraY):
+        window.blit(self.image, (self.positionX - cameraX, self.positionY - 30 - cameraY))
 
     def detectPlayer(self, player):
         rightVision = pygame.Rect(self.positionX, self.positionY, self.visionRange, self.height)

@@ -17,9 +17,9 @@ class Key(Item):
     def tick(self, player):
         self.check_collision(player)
 
-    def draw(self, window, cameraX):
+    def draw(self, window, cameraX, cameraY):
         if not self.collected:
-            window.blit(self.image, (self.positionX - cameraX, self.positionY))
+            window.blit(self.image, (self.positionX - cameraX, self.positionY - cameraY))
 
     def check_collision(self, player):
         if not self.collected and self.hitbox.colliderect(player.hitbox):

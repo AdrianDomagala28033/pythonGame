@@ -1,20 +1,21 @@
 import pygame
 import sys
-
-from gameCode.Classes.levels.levelClass import Level  # Upewnij się że ścieżka jest prawidłowa
+from gameCode.Classes.levels.levelManager import LevelManager
 
 # Inicjalizacja Pygame
 pygame.init()
 window_width = 1280
 window_height = 720
 window = pygame.display.set_mode((window_width, window_height))
-pygame.display.set_caption("Dungeon Escape - Test")
+pygame.display.set_caption("The last exit - test")
 clock = pygame.time.Clock()
 
 def levelTwo(window):
     # Załaduj poziom
     try:
-        level = Level.load_from_file("levels/levelsTXT/levelTwo.txt", window)
+        level = LevelManager(window)
+        level.nextLevel()
+        levelElements = level.getCurrentLevel()
         print("Poziom załadowany pomyślnie!")
     except Exception as e:
         print("Błąd podczas ładowania poziomu:", e)
@@ -34,14 +35,14 @@ def levelTwo(window):
 
 
         # Aktualizacja logiki
-        level.player.tick(keys, level.tiles, level.enemies, [], window)
+        levelElements.player.tick(keys, levelElements.tiles, levelElements.enemies, [], window_width, window_height)
         # level.enemies[0].tick(level.player)
-        level.update_camera()
-        level.update(level.tiles, window)
+        levelElements.update_camera()
+        levelElements.update(levelElements.tiles, window)
 
         # Rysowanie
         window.fill((30, 30, 30))
-        level.draw(window)
+        levelElements.draw(window)
         pygame.display.flip()
 
     # Zamykanie Pygame

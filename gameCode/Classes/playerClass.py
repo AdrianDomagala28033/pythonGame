@@ -12,7 +12,7 @@ class Player(Physic):
 
     def __init__(self, window):
         self.standImage = pygame.image.load(f"./images/playerAnimation/player0.png")
-        width = self.standImage.get_width()
+        width = 49
         height = self.standImage.get_height()
         self.maxHealth = 100
         self.health = self.maxHealth
@@ -35,7 +35,7 @@ class Player(Physic):
 
 
 
-    def tick(self, keys, grounds, enemy, window, cameraX):
+    def tick(self, keys, grounds, enemy, window, cameraX,cameraY):
         self.physicTick(self, grounds)
         self.enemyCollision(enemy)
         self.move(keys, window)
@@ -54,9 +54,9 @@ class Player(Physic):
 
     def tickPosition(self, levelWidth):
         self.positionX = max(0, min(self.positionX, levelWidth - self.width))
-    def draw(self, window, cameraX):
+    def draw(self, window, cameraX, cameraY):
         self.healthBar(window)
-        self.walkAnimation(window, cameraX)
+        self.walkAnimation(window, cameraX, cameraY)
         self.inventory.drawInventory(window)
         weapon = self.inventory.getDistanceWeapon()
         if weapon and weapon.tag == "bow":
@@ -68,26 +68,26 @@ class Player(Physic):
         pygame.draw.rect(window, (0, 0, 0), (3, 3, self.width + 5, 15))
         pygame.draw.rect(window, (235, 64, 52), (5, 5, (self.width) * (self.health / 100), 10))
 
-    def changeDirection(self, window, cameraX):
+    def changeDirection(self, window, cameraX, cameraY):
         if (self.direction > 0):
-            window.blit(self.walkImg[floor(self.walkIndex)], (self.positionX - cameraX, self.positionY))
+            window.blit(self.walkImg[floor(self.walkIndex)], (self.positionX - cameraX, self.positionY - cameraY))
         else:
-            window.blit(pygame.transform.flip(self.walkImg[floor(self.walkIndex)], True, False), (self.positionX - cameraX, self.positionY))
-    def walkAnimation(self, window, cameraX):
+            window.blit(pygame.transform.flip(self.walkImg[floor(self.walkIndex)], True, False), (self.positionX - cameraX, self.positionY - cameraY))
+    def walkAnimation(self, window, cameraX, cameraY):
         if (self.jumping and self.direction > 0):
-            window.blit(self.jumpImg, (self.positionX - cameraX, self.positionY))
+            window.blit(self.jumpImg, (self.positionX - cameraX, self.positionY - cameraY))
         elif(self.jumping and self.direction < 0):
-            window.blit(pygame.transform.flip(self.jumpImg, True, False), (self.positionX - cameraX, self.positionY))
+            window.blit(pygame.transform.flip(self.jumpImg, True, False), (self.positionX - cameraX, self.positionY - cameraY))
         elif(self.horVelocity != 0):
-            self.changeDirection(window, cameraX)
+            self.changeDirection(window, cameraX, cameraY)
             self.walkIndex += 0.3
             if self.walkIndex > 5:
                 self.walkIndex = 0
         else:
             if(self.direction < 0):
-                window.blit(pygame.transform.flip(self.standImage, True, False), (self.positionX - cameraX, self.positionY))
+                window.blit(pygame.transform.flip(self.standImage, True, False), (self.positionX - cameraX, self.positionY - cameraY))
             else:
-                window.blit(self.standImage, (self.positionX - cameraX, self.positionY))
+                window.blit(self.standImage, (self.positionX - cameraX, self.positionY - cameraY))
 
     def enemyCollision(self, enemy):
         for e in enemy:
