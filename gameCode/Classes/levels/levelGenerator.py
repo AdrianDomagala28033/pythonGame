@@ -117,10 +117,17 @@ class LevelGenerator:
                     level[y][mid_x] = "#"
 
     def addPlayerAndGoal(self, level, platforms):
-        for y in range(self.height):
-            if level[y][2] == "." and level[y + 1][2] == "#":
-                level[y][2] = "P"
-                break
+        # Dodaj gracza nad jedną z dolnych platform (bliżej początku)
+        if platforms:
+            x1, x2, y = platforms[-1]  # najniższa platforma
+            player_x = random.randint(x1, x2)
+            level[y - 1][player_x] = "P"
+
+        # Dodaj cel na jednej z górnych platform (bliżej końca)
+        if len(platforms) >= 2:
+            x1, x2, y = platforms[0]  # najwyższa platforma
+            goal_x = random.randint(x1, x2)
+            level[y - 1][goal_x] = "K"
 
     def addDecorations(self, level):
         for _ in range(20):
