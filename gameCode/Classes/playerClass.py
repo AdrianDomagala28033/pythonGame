@@ -38,8 +38,10 @@ class Player(Physic):
     def tick(self, keys, grounds, enemy, window, cameraX,cameraY):
         self.physicTick(self, grounds)
         self.enemyCollision(enemy)
-        self.move(keys, window)
+        self.move(keys, window, grounds)
         self.useInventory()
+        keys = pygame.key.get_pressed()
+        self.handleJumpInput(keys, grounds)
         selectedWeapon = self.inventory.getSelectedWeapon()
         if selectedWeapon and selectedWeapon.tag == "sword":
             keys = pygame.key.get_pressed()
@@ -61,7 +63,7 @@ class Player(Physic):
         weapon = self.inventory.getDistanceWeapon()
         if weapon and weapon.tag == "bow":
             for proj in weapon.projectiles:
-                proj.draw(window, cameraX)
+                proj.draw(window, cameraX, cameraY)
 
 
     def healthBar(self, window):
@@ -111,17 +113,15 @@ class Player(Physic):
                 weapon.shoot(self.positionX - 10, self.positionY + 30)
             else:
                 weapon.shoot(self.positionX - 65, self.positionY + 30)
-    def move(self, keys, window):
+    def move(self, keys, window, obstacles):
         if (keys[pygame.K_a] and self.horVelocity > self.maxVelocity * -1):
             self.horVelocity -= self.acc
             self.direction = -1
         if (keys[pygame.K_d] and self.horVelocity < self.maxVelocity):
-
             self.horVelocity += self.acc
             self.direction = 1
-        if(keys[pygame.K_SPACE] and self.jumping == False):
-            self.verVelocity -= 15
-            self.jumping = True
+        # if(keys[pygame.K_SPACE] and not self.jumping):
+        #     self.handleJumpInput(keys, obstacles)
         if(keys[pygame.K_e]): #use item
             self.inventory.useItem(self)
         if keys[pygame.K_c]:

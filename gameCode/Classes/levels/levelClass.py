@@ -28,7 +28,7 @@ class Level:
         self.cameraX = self.player.positionX - 1280 // 2
         self.cameraX = max(0, min(self.cameraX, self.levelWidth - 1280))
         self.cameraY = self.player.positionY - 720 // 2
-        self.cameraY = max(0, self.cameraY - 80)
+        self.cameraY = max(0, self.cameraY - 120)
 
     def update(self, obstacles, window):
         self.player.tickPosition(self.levelWidth)

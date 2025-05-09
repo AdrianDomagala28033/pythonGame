@@ -1,5 +1,7 @@
 import pygame
 import sys
+
+from gameCode.Classes.levels.levelClass import Level
 from gameCode.Classes.levels.levelManager import LevelManager
 
 # Inicjalizacja Pygame
@@ -13,6 +15,7 @@ clock = pygame.time.Clock()
 def levelTwo(window):
     # Załaduj poziom
     try:
+        # levelElements = Level.load_from_file("levels/levelsTXT/levelTwo.txt", window)
         level = LevelManager(window)
         level.nextLevel()
         levelElements = level.getCurrentLevel()
