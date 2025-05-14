@@ -12,7 +12,7 @@ class Player(Physic):
 
     def __init__(self, window):
         self.standImage = pygame.image.load(f"./images/playerAnimation/player0.png")
-        width = 49
+        width = 45
         height = self.standImage.get_height()
         self.maxHealth = 100
         self.health = self.maxHealth
@@ -138,7 +138,10 @@ class Player(Physic):
                 self.horVelocity -= self.acc
             elif(self.horVelocity < 0):
                 self.horVelocity += self.acc
-
+        if (keys[pygame.K_s]):
+            self.height = 45
+        if not (keys[pygame.K_s]):
+            self.height = self.standImage.get_height()
     def useInventory(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_1]:

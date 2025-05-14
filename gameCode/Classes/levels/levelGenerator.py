@@ -1,17 +1,20 @@
 import random
+from collections import deque
+
 
 class LevelGenerator:
-    def __init__(self, width=40, height=30):
+    def __init__(self, width=80, height=50):
         self.width = width
         self.height = height
 
     def generatePassableLevelText(self):
+
         level = [["." for _ in range(self.width)] for _ in range(self.height)]
         self.addGround(level)
-        platforms = self.addPlatforms(level)
-        self.addVerticalConnections(level, platforms)
+        floors = self.addFloors(level)
+        self.addVerticalConnections(level, floors)
         self.addDecorations(level)
-        self.addPlayerAndGoal(level, platforms)
+        self.addPlayerAndGoal(level, floors)
         self.addGround(level)
         return ["".join(row) for row in level]
 
@@ -36,8 +39,8 @@ class LevelGenerator:
                 level[y][x] = "#"
 
     def addPlatforms(self, level):
-        num_platform_rows = random.randint(6, 10)  # liczba platform do wygenerowania
-        used_rows = set()  # Zbiór do przechowywania pozycji platform
+        num_platform_rows = random.randint(int(self.height // 3), int(self.width // 3))  # liczba platform do wygenerowania
+        used_rows = set()
         attempts = 0
         max_attempts = 100  # zapobiega nieskończonej pętli
 
@@ -74,10 +77,12 @@ class LevelGenerator:
                         break
                     for i in range(length):
                         level[y][x + i] = "#"
-                        if random.random() < 0.15:
-                            level[y - 1][x + i] = "C"  # Dodajemy monety
-                        elif random.random() < 0.10:
-                            level[y - 1][x + i] = random.choice(["E", "R"])  # Dodajemy wrogów/obiekty
+                        above_y = y - 1
+                        if above_y >= 0 and level[above_y][x + i] == ".":
+                            if random.random() < 0.15:
+                                level[above_y][x + i] = "C"
+                            elif random.random() < 0.10:
+                                level[above_y][x + i] = random.choice(["E", "R"])  # Dodajemy wrogów/obiekty
                     platforms.append((x, x + length - 1, y))  # Dodajemy platformę do listy
                     x += length + random.randint(2, 6)  # Przesuwamy pozycję x
                 else:
@@ -116,18 +121,93 @@ class LevelGenerator:
                 if 0 <= y < self.height:
                     level[y][mid_x] = "#"
 
-    def addPlayerAndGoal(self, level, platforms):
-        # Dodaj gracza nad jedną z dolnych platform (bliżej początku)
-        if platforms:
-            x1, x2, y = platforms[-1]  # najniższa platforma
-            player_x = random.randint(x1, x2)
-            level[y - 1][player_x] = "P"
+    def addFloors(self, level):
+        floor_rows = []
+        y = self.height - 4
+        while y > 3:
+            floor_rows.append(y)
+            y -= random.randint(3, 5)
 
-        # Dodaj cel na jednej z górnych platform (bliżej końca)
-        if len(platforms) >= 2:
-            x1, x2, y = platforms[0]  # najwyższa platforma
-            goal_x = random.randint(x1, x2)
-            level[y - 1][goal_x] = "K"
+        floor_segments = []
+
+        for y in floor_rows:
+            x = 1
+            while x < self.width - 2:
+                if random.random() < 0.95:  # zwiększamy szansę na generowanie podłóg z 85% do 95%
+                    length = random.randint(6, 12)  # trochę dłuższe platformy
+                    for i in range(length):
+                        if x + i < self.width - 1:
+                            level[y][x + i] = "#"
+
+                            # Dekoracje/monety
+                            if random.random() < 0.1:
+                                level[y - 1][x + i] = "C"
+                            elif random.random() < 0.05:
+                                level[y - 1][x + i] = random.choice(["E", "R"])
+
+                            # Kolumny od dołu
+                            if random.random() < 0.25:
+                                col_height = random.randint(1, 3)
+                                for j in range(1, col_height + 1):
+                                    if y + j < self.height:
+                                        level[y + j][x + i] = "#"
+
+                    floor_segments.append((x, x + length - 1, y))
+                    x += length + random.randint(1, 3)  # mniejsza przerwa między platformami
+                else:
+                    x += random.randint(2, 5)
+
+            # Dodanie pomocniczych platform do skoku
+            for seg_start, seg_end, y in floor_segments:
+                if random.random() < 0.8 and y + 5 < self.height:  # nieco częściej
+                    platform_width = random.choice([3, 4])
+                    px = seg_end - random.randint(0, 2)
+                    py = y + 3
+                    if px + platform_width < self.width:
+                        for i in range(platform_width):
+                            level[py][px + i] = "#"
+                        if random.random() < 0.3 and py - 1 > 0:
+                            level[py - 1][px + platform_width // 2] = "C"
+
+        # Dodanie pionowych przejść (2–3 zejścia) w losowych kolumnach
+        num_connections = random.randint(2, 3)
+        for _ in range(num_connections):
+            col = random.randint(3, self.width - 4)
+            for y in floor_rows:
+                if y + 1 < self.height:
+                    level[y][col] = "."  # wymazujemy fragment podłogi, by zrobić pionowy spadek
+                if y + 1 < self.height:
+                    level[y + 1][col] = "."  # dodatkowe pogłębienie
+
+        return floor_segments
+
+    def addPlayerAndGoal(self, level, platforms):
+        if not platforms:
+            return
+
+        # Sortuj platformy rosnąco po Y (czyli od dołu do góry)
+        platforms.sort(key=lambda p: p[2])
+
+        # Gracz na najniższej platformie
+        start_x = random.randint(platforms[0][0], platforms[0][1])
+        start_y = platforms[0][2]
+        level[start_y - 1][start_x] = "P"
+
+        # Drzwi na najwyższej platformie
+        end_x = random.randint(platforms[-1][0], platforms[-1][1])
+        end_y = platforms[-1][2]
+        level[end_y - 1][end_x] = "D"
+
+        # Klucz – na losowej platformie między startem a końcem (jeśli są przynajmniej 3 poziomy)
+        if len(platforms) >= 3:
+            middle_platforms = platforms[1:-1]
+            key_platform = random.choice(middle_platforms)
+        else:
+            key_platform = platforms[len(platforms) // 2]
+
+        key_x = random.randint(key_platform[0], key_platform[1])
+        key_y = key_platform[2]
+        level[key_y - 1][key_x] = "K"
 
     def addDecorations(self, level):
         for _ in range(20):
@@ -135,5 +215,3 @@ class LevelGenerator:
             y = random.randint(1, self.height - 3)
             if level[y][x] == ".":
                 level[y][x] = random.choice(["*", "T", "B"])
-
-
