@@ -35,7 +35,7 @@ class Physic(GameObject):
                     self.positionX = obstacles.hitbox.right
                 self.horVelocity = 0
                 self.hitbox.x = self.positionX
-        elif(self.tag == "enemy"):
+        elif(self.tag == "robug"):
             self.movementX(obstacles)
             self.movementY(obstacles)
             self.checkBlockUnder(obstacles)

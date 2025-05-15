@@ -40,7 +40,6 @@ class LevelGenerator:
 
     def addPlatforms(self, level):
         num_platform_rows = random.randint(int(self.height // 3), int(self.width // 3))  # liczba platform do wygenerowania
-        used_rows = set()
         attempts = 0
         max_attempts = 100  # zapobiega nieskończonej pętli
 

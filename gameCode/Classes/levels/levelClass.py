@@ -1,12 +1,14 @@
 import pygame
 
 from gameCode.Classes.coinClass import Coin
+from gameCode.Classes.enemies.ghost import GhostEnemy
+from gameCode.Classes.enemies.robugs import RobugEnemy
 from gameCode.Classes.groundClass import Ground
-from gameCode.Classes.enemyClass import Enemy
+from gameCode.Classes.enemies.enemyClass import Enemy
 from gameCode.Classes.levels.door import Door
 from gameCode.Classes.levels.key import Key
 from gameCode.Classes.playerClass import Player
-from gameCode.Classes.equipment.potions import health_potion
+
 
 class Level:
     def __init__(self, tiles, player, enemies, coins, key, door, width, height):
@@ -92,7 +94,7 @@ class Level:
                     player.positionY = world_y
                 elif char == "E":
                     enemyImg = pygame.image.load("./images/enemiesAnimation/ghost.png")
-                    enemies.append(Enemy(world_x, world_y, enemyImg, "ghost"))
+                    enemies.append(GhostEnemy(world_x, world_y, enemyImg, "ghost"))
                 elif char == "R":
                     enemyImg = pygame.image.load("./images/enemiesAnimation/enemy.png")
                     enemies.append(Enemy(world_x, world_y, enemyImg, "enemy"))
@@ -115,6 +117,7 @@ class Level:
         tile_size = 50
         tiles = []
         enemies = []
+        ghosts = []
         coins = []
         key = []
         door = Door(0, 0)
@@ -136,11 +139,9 @@ class Level:
                     player.positionX = world_x
                     player.positionY = world_y
                 elif char == "E":
-                    enemyImg = pygame.image.load("./images/enemiesAnimation/ghost.png")
-                    enemies.append(Enemy(world_x, world_y, enemyImg, "ghost"))
+                    enemies.append(GhostEnemy(world_x, world_y, 50, 100))
                 elif char == "R":
-                    enemyImg = pygame.image.load("./images/enemiesAnimation/enemy.png")
-                    enemies.append(Enemy(world_x, world_y, enemyImg, "enemy"))
+                    enemies.append(RobugEnemy(world_x, world_y, 10, 100))
                 elif char == "C":
                     coins.append(Coin(world_x, world_y))
                 elif char == "K":

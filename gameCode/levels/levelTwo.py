@@ -15,7 +15,7 @@ clock = pygame.time.Clock()
 def levelTwo(window):
     # Załaduj poziom
     try:
-        # levelElements = Level.load_from_file("levels/levelsTXT/levelTwo.txt", window)
+        # levelElements = Level.load_from_file("levels/levelsTXT/levelThree.txt", window)
         level = LevelManager(window)
         level.nextLevel()
         levelElements = level.getCurrentLevel()

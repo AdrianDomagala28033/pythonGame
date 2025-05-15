@@ -2,7 +2,7 @@ import pygame
 
 from gameCode.Classes.playerClass import Player
 from gameCode.Classes.groundClass import Ground
-from gameCode.Classes.enemyClass import Enemy
+from gameCode.Classes.enemies.enemyClass import Enemy
 
 from gameCode.Classes.levels.levelClass import Level
 
