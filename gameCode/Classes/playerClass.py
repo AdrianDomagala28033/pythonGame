@@ -120,8 +120,6 @@ class Player(Physic):
         if (keys[pygame.K_d] and self.horVelocity < self.maxVelocity):
             self.horVelocity += self.acc
             self.direction = 1
-        # if(keys[pygame.K_SPACE] and not self.jumping):
-        #     self.handleJumpInput(keys, obstacles)
         if(keys[pygame.K_e]): #use item
             self.inventory.useItem(self)
         if keys[pygame.K_c]:
@@ -140,8 +138,10 @@ class Player(Physic):
                 self.horVelocity += self.acc
         if (keys[pygame.K_s]):
             self.height = 45
+            self.acc = 0
         if not (keys[pygame.K_s]):
             self.height = self.standImage.get_height()
+            self.acc = 0.5
     def useInventory(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_1]:

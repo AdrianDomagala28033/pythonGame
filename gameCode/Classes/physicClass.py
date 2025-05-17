@@ -53,14 +53,10 @@ class Physic(GameObject):
                     self.positionX = obj.hitbox.left - self.width
                     self.horVelocity = 0
                     self.hitbox.x = self.positionX
-                    if (self.horVelocity < self.maxVelocity):
-                        self.verVelocity = 1
                 elif self.horVelocity < 0:  # w lewo
                     self.positionX = obj.hitbox.right
                     self.horVelocity = 0
                     self.hitbox.x = self.positionX
-                    if (self.horVelocity > self.maxVelocity * -1):
-                        self.verVelocity = 1
 
     def movementY(self, obstacles):
         gravity = 0.6

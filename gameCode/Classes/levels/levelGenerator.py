@@ -1,216 +1,279 @@
 import random
-from collections import deque
-
+from perlin_noise import PerlinNoise
+import networkx as nx
 
 class LevelGenerator:
-    def __init__(self, width=80, height=50):
+    def __init__(self, width=100, height=50, roomCount=20):
         self.width = width
         self.height = height
+        self.roomCount = roomCount
+        self.noise = PerlinNoise(octaves=4)
 
-    def generatePassableLevelText(self):
+    def createEmptyMap(self):
+        return [["#" for _ in range(self.width)] for _ in range(self.height)]
 
-        level = [["." for _ in range(self.width)] for _ in range(self.height)]
-        self.addGround(level)
-        floors = self.addFloors(level)
-        self.addVerticalConnections(level, floors)
-        self.addDecorations(level)
-        self.addPlayerAndGoal(level, floors)
-        self.addGround(level)
+    def generateNoiseLayer(self):
+        level = self.createEmptyMap()
+        for y in range(self.height):
+            for x in range(self.width):
+                val = self.noise([x / self.width, y / self.height])
+                if val > 0.05:
+                    level[y][x] = "."
+        return level
+
+    def placeRooms(self, level):
+        rooms = []
+        for _ in range(self.roomCount):
+            rw, rh = random.randint(6, 10), random.randint(4, 6)
+            rx = random.randint(1, self.width - rw - 1)
+            ry = random.randint(1, self.height - rh - 1)
+            rooms.append({'x': rx, 'y': ry, 'w': rw, 'h': rh})
+            for y in range(ry, ry + rh):
+                for x in range(rx, rx + rw):
+                    level[y][x] = "."
+        return rooms
+
+    def connectRoomsGraph(self, level, rooms):
+        G = nx.Graph()
+        for i, room in enumerate(rooms):
+            cx = room['x'] + room['w'] // 2
+            cy = room['y'] + room['h'] // 2
+            G.add_node(i, pos=(cx, cy))
+
+        for i in range(len(rooms)):
+            for j in range(i + 1, len(rooms)):
+                x1, y1 = G.nodes[i]['pos']
+                x2, y2 = G.nodes[j]['pos']
+                dist = ((x1 - x2)**2 + (y1 - y2)**2) ** 0.5
+                G.add_edge(i, j, weight=dist)
+
+        mst = nx.minimum_spanning_tree(G)
+        for u, v in mst.edges:
+            self.digTunnel(level, G.nodes[u]['pos'], G.nodes[v]['pos'])
+
+    def digTunnel(self, level, start, end, pathWidth=2):
+        x1, y1 = start
+        x2, y2 = end
+
+        points = [(x1, y1)]
+        steps = max(abs(x2 - x1), abs(y2 - y1))
+
+        for i in range(1, steps):
+            t = i / steps
+            # interpolacja z lekkim zakrzywieniem (np. sinusoida + szum)
+            xt = int(x1 + t * (x2 - x1) + random.randint(-1, 1))
+            yt = int(y1 + t * (y2 - y1) + random.choice([-1, 0, 1]))
+            points.append((xt, yt))
+
+        points.append((x2, y2))
+
+        for (px, py) in points:
+            for dx in range(-pathWidth // 2, pathWidth // 2 + 1):
+                for dy in range(-pathWidth // 2, pathWidth // 2 + 1):
+                    nx, ny = px + dx, py + dy
+                    if 1 <= ny < self.height - 1 and 1 <= nx < self.width - 1:
+                        level[ny][nx] = "."
+
+    def placePlayerAndGoal(self, level, rooms):
+        playerRoom = random.choice(rooms)
+        px = playerRoom['x'] + playerRoom['w'] // 2
+        py = playerRoom['y'] + playerRoom['h'] // 2
+        level[py][px] = 'P'
+
+        while True:
+            doorRoom = random.choice(rooms)
+            if doorRoom != playerRoom:
+                dx = doorRoom['x'] + doorRoom['w'] // 2
+                dy = doorRoom['y'] + doorRoom['h'] // 2
+                if level[dy][dx] == ".":
+                    level[dy][dx] = 'D'
+                    break
+
+    def generateLevel(self):
+        level = self.generateNoiseLayer()
+        rooms = self.placeRooms(level)
+        self.connectRoomsGraph(level, rooms)
+        self.placePlayerAndGoal(level, rooms)
+        self.addPlatforms(level)
+        self.addDistributedPlatforms(level)
+        self.ensureAccessibility(level, rooms)
+        self.addBottomWall(level)
+        self.detectAndFixUnreachableAreas(level)
         return ["".join(row) for row in level]
 
-    def addGround(self, level):
-        groundY = self.height - 2
-        current_height = groundY
-        max_variation = 2  # maksymalne różnice wysokości
-        smoothing = 0.7  # im wyższe, tym bardziej wyrównany teren
+    def addBottomWall(self, level):
+        """Zamienia ostatni rząd na poziomą linię ściany (#)."""
+        level[-1] = ["#"] * self.width
 
-        for x in range(self.width):
-            if random.random() < smoothing:
-                delta = random.choice([-1, 0, 1])
-                new_height = current_height + delta
-                # Ograniczamy wysokość do bezpiecznego zakresu
-                new_height = max(1, min(self.height - 3, new_height))
-                current_height = new_height
+    def addPlatforms(self, level, windowSize=9, minEmptyRatio=0.85, platformLengthRange=(2, 4)):
+        for y in range(1, self.height - windowSize - 1):
+            for x in range(1, self.width - windowSize - 1):
+                emptyCount = 0
+                for dy in range(windowSize):
+                    for dx in range(windowSize):
+                        if level[y + dy][x + dx] == ".":
+                            emptyCount += 1
 
-            level[current_height][x] = "#"
+                total = windowSize * windowSize
+                if emptyCount / total >= minEmptyRatio:
+                    # Umieść platformę na środku tego obszaru
+                    platY = y + windowSize // 2
+                    platX = x + windowSize // 2
+                    platLen = random.randint(*platformLengthRange)
+                    half = platLen // 2
 
-            # Wypełniamy pod spodem (ziemię)
-            for y in range(current_height + 1, self.height):
-                level[y][x] = "#"
+                    for dx in range(-half, half + 1):
+                        px = platX + dx
+                        if 0 <= px < self.width and level[platY][px] == ".":
+                            level[platY][px] = "#"
 
-    def addPlatforms(self, level):
-        num_platform_rows = random.randint(int(self.height // 3), int(self.width // 3))  # liczba platform do wygenerowania
-        attempts = 0
-        max_attempts = 100  # zapobiega nieskończonej pętli
+    def addDistributedPlatforms(self, level, sectorsX=10, sectorsY=5, attemptsPerSector=2, minLength=4, maxLength=8):
+        sectorWidth = self.width // sectorsX
+        sectorHeight = self.height // sectorsY
 
-        # Generowanie platform
-        last_platform_y = self.height - 3  # Pierwsza platforma na poziomie gracza
-        platform_rows = []
+        for sy in range(sectorsY):
+            for sx in range(sectorsX):
+                for _ in range(attemptsPerSector):
+                    length = random.randint(minLength, maxLength)
+                    x_min = sx * sectorWidth + 1
+                    x_max = min((sx + 1) * sectorWidth - length - 2, self.width - length - 1)
+                    y_min = sy * sectorHeight + 2
+                    y_max = min((sy + 1) * sectorHeight - 2, self.height - 2)
 
-        while len(platform_rows) < num_platform_rows and attempts < max_attempts:
-            # Generowanie wysokości platformy z minimalnym odstępem od poprzedniej
-            min_y = max(last_platform_y - random.randint(2, 5), 2)  # Minimalna wysokość 2
-            max_y = last_platform_y - 1  # Platforma musi być wyżej niż poprzednia
+                    if x_min >= x_max or y_min >= y_max:
+                        continue  # pomiń ten sektor, jeśli za mały
 
-            # Zapewnienie, że min_y nie jest większe niż max_y
-            if min_y > max_y:
-                min_y = max_y
+                    x = random.randint(x_min, x_max)
+                    y = random.randint(y_min, y_max)
 
-            y = random.randint(min_y, max_y)  # Losujemy pozycję Y platformy
-
-            # Jeśli platforma jest zbyt blisko poprzedniej, próbuj ponownie
-            if all(abs(y - r) > 2 for r in platform_rows):  # zapewnia odstęp w pionie
-                platform_rows.append(y)
-                last_platform_y = y
-            attempts += 1
-
-        # Sortowanie platform w kolejności od dołu do góry
-        platform_rows = sorted(platform_rows, reverse=True)
-        platforms = []
-        for y in platform_rows:
-            x = 2
-            while x < self.width - 5:
-                if random.random() < 0.7:  # 70% szans na stworzenie platformy
-                    length = random.randint(4, 7)  # Losujemy długość platformy
-                    if x + length >= self.width:
-                        break
+                    # Sprawdź czy można umieścić platformę
+                    canPlace = True
                     for i in range(length):
-                        level[y][x + i] = "#"
-                        above_y = y - 1
-                        if above_y >= 0 and level[above_y][x + i] == ".":
-                            if random.random() < 0.15:
-                                level[above_y][x + i] = "C"
-                            elif random.random() < 0.10:
-                                level[above_y][x + i] = random.choice(["E", "R"])  # Dodajemy wrogów/obiekty
-                    platforms.append((x, x + length - 1, y))  # Dodajemy platformę do listy
-                    x += length + random.randint(2, 6)  # Przesuwamy pozycję x
-                else:
-                    x += random.randint(3, 6)  # Losujemy, gdzie może pojawić się kolejna platforma
+                        if level[y][x + i] != ".":
+                            canPlace = False
+                            break
+                        for dy in range(1, 4):
+                            if y + dy >= self.height or level[y + dy][x + i] == "#":
+                                canPlace = False
+                                break
+                        if not canPlace:
+                            break
 
-        # Zapewnienie minimalnej odległości pomiędzy platformami, żeby były dostępne
-        adjusted_platforms = []
-        for i in range(1, len(platforms)):
-            prev_x1, prev_x2, prev_y = platforms[i - 1]
-            x1, x2, y = platforms[i]
-
-            # Jeśli platformy są za daleko od siebie, przesuwamy platformę w górę
-            if prev_y - y > 3:
-                y = prev_y - 3  # Platforma będzie przesunięta w górę, aby była osiągalna
-
-            adjusted_platforms.append((x1, x2, y))
-
-        # Uaktualniamy listę platform
-        platforms = adjusted_platforms
-
-        return platforms
-    def addVerticalConnections(self, level, platforms):
-        platforms.sort(key=lambda p: p[2])  # Sortuj po Y od dołu
-        for i in range(len(platforms) - 1):
-            x1_left, x1_right, y1 = platforms[i]
-            x2_left, x2_right, y2 = platforms[i + 1]
-            common_left = max(x1_left, x2_left)
-            common_right = min(x1_right, x2_right)
-
-            if common_left <= common_right:
-                mid_x = random.randint(common_left, common_right)
-            else:
-                mid_x = random.randint(x2_left + 1, x2_right - 1)
-
-            for y in range(y1 - 1, y2, -1):
-                if 0 <= y < self.height:
-                    level[y][mid_x] = "#"
-
-    def addFloors(self, level):
-        floor_rows = []
-        y = self.height - 4
-        while y > 3:
-            floor_rows.append(y)
-            y -= random.randint(3, 5)
-
-        floor_segments = []
-
-        for y in floor_rows:
-            x = 1
-            while x < self.width - 2:
-                if random.random() < 0.95:  # zwiększamy szansę na generowanie podłóg z 85% do 95%
-                    length = random.randint(6, 12)  # trochę dłuższe platformy
-                    for i in range(length):
-                        if x + i < self.width - 1:
+                    if canPlace:
+                        for i in range(length):
                             level[y][x + i] = "#"
 
-                            # Dekoracje/monety
-                            if random.random() < 0.1:
-                                level[y - 1][x + i] = "C"
-                            elif random.random() < 0.05:
-                                level[y - 1][x + i] = random.choice(["E", "R"])
+    def ensureAccessibility(self, level, rooms, platform_interval=3, platform_length=5):
+        from collections import deque
 
-                            # Kolumny od dołu
-                            if random.random() < 0.25:
-                                col_height = random.randint(1, 3)
-                                for j in range(1, col_height + 1):
-                                    if y + j < self.height:
-                                        level[y + j][x + i] = "#"
+        # Znajdź pozycję gracza
+        for y in range(self.height):
+            for x in range(self.width):
+                if level[y][x] == "P":
+                    playerPos = (x, y)
+                    break
 
-                    floor_segments.append((x, x + length - 1, y))
-                    x += length + random.randint(1, 3)  # mniejsza przerwa między platformami
-                else:
-                    x += random.randint(2, 5)
+        visited = [[False for _ in range(self.width)] for _ in range(self.height)]
+        queue = deque([playerPos])
+        visited[playerPos[1]][playerPos[0]] = True
 
-            # Dodanie pomocniczych platform do skoku
-            for seg_start, seg_end, y in floor_segments:
-                if random.random() < 0.8 and y + 5 < self.height:  # nieco częściej
-                    platform_width = random.choice([3, 4])
-                    px = seg_end - random.randint(0, 2)
-                    py = y + 3
-                    if px + platform_width < self.width:
-                        for i in range(platform_width):
-                            level[py][px + i] = "#"
-                        if random.random() < 0.3 and py - 1 > 0:
-                            level[py - 1][px + platform_width // 2] = "C"
+        # BFS - zaznacz dostępne kratki
+        while queue:
+            cx, cy = queue.popleft()
+            for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                nx, ny = cx + dx, cy + dy
+                if 0 <= nx < self.width and 0 <= ny < self.height:
+                    if not visited[ny][nx] and level[ny][nx] in (".", "P", "D", "#"):
+                        visited[ny][nx] = True
+                        queue.append((nx, ny))
 
-        # Dodanie pionowych przejść (2–3 zejścia) w losowych kolumnach
-        num_connections = random.randint(2, 3)
-        for _ in range(num_connections):
-            col = random.randint(3, self.width - 4)
-            for y in floor_rows:
-                if y + 1 < self.height:
-                    level[y][col] = "."  # wymazujemy fragment podłogi, by zrobić pionowy spadek
-                if y + 1 < self.height:
-                    level[y + 1][col] = "."  # dodatkowe pogłębienie
+        # Sprawdź które pokoje są niedostępne
+        for room in rooms:
+            cx = room['x'] + room['w'] // 2
+            cy = room['y'] + room['h'] // 2
+            if not visited[cy][cx]:
+                # Znajdź najbliższy dostępny punkt
+                best = None
+                bestDist = float("inf")
+                for y in range(self.height):
+                    for x in range(self.width):
+                        if visited[y][x] and level[y][x] == ".":
+                            dist = abs(cx - x) + abs(cy - y)
+                            if dist < bestDist:
+                                best = (x, y)
+                                bestDist = dist
 
-        return floor_segments
+                if best:
+                    # Pokój znajduje się wyżej niż dostępny obszar → szyb z platformami
+                    if cy < best[1] - 3:
+                        for y in range(cy, best[1] + 1):
+                            if 1 <= y < self.height - 1 and 1 <= cx < self.width - 1:
+                                level[y][cx] = "."  # szyb
 
-    def addPlayerAndGoal(self, level, platforms):
-        if not platforms:
+                                if (y - cy) % platform_interval == 0:
+                                    # Dodaj platformę poziomą (np. 5-kratkową)
+                                    start = max(1, cx - platform_length // 2)
+                                    end = min(self.width - 2, start + platform_length)
+                                    for px in range(start, end):
+                                        level[y][px] = "#"
+                    else:
+                        # Normalny tunel jeśli nie trzeba wspinać się
+                        self.digTunnel(level, (cx, cy), best)
+
+    def detectAndFixUnreachableAreas(self, level, maxJumpHeight=3, maxStepWidth=3, maxPlatforms=90):
+        from collections import deque
+
+        height = len(level)
+        width = len(level[0])
+        visited = [[False for _ in range(width)] for _ in range(height)]
+
+        # Znajdź gracza
+        for y in range(height):
+            for x in range(width):
+                if level[y][x] == 'P':
+                    start = (x, y)
+                    break
+            else:
+                continue
+            break
+        else:
             return
 
-        # Sortuj platformy rosnąco po Y (czyli od dołu do góry)
-        platforms.sort(key=lambda p: p[2])
+        # BFS – gdzie gracz może się dostać
+        queue = deque([start])
+        visited[start[1]][start[0]] = True
 
-        # Gracz na najniższej platformie
-        start_x = random.randint(platforms[0][0], platforms[0][1])
-        start_y = platforms[0][2]
-        level[start_y - 1][start_x] = "P"
+        while queue:
+            x, y = queue.popleft()
+            for dx in range(-maxStepWidth, maxStepWidth + 1):
+                for dy in range(-maxJumpHeight, 2):
+                    nx, ny = x + dx, y + dy
+                    if 0 <= nx < width and 0 <= ny < height:
+                        if not visited[ny][nx] and level[ny][nx] == ".":
+                            # Można stanąć jeśli ma coś pod spodem
+                            if ny + 1 < height and level[ny + 1][nx] in ("#", "P", "D"):
+                                visited[ny][nx] = True
+                                queue.append((nx, ny))
 
-        # Drzwi na najwyższej platformie
-        end_x = random.randint(platforms[-1][0], platforms[-1][1])
-        end_y = platforms[-1][2]
-        level[end_y - 1][end_x] = "D"
+        # Dodaj platformy tam, gdzie można pomóc doskoczyć
+        platformsPlaced = 0
+        for y in range(height - 4, 2, -1):
+            for x in range(2, width - 2):
+                if platformsPlaced >= maxPlatforms:
+                    return
 
-        # Klucz – na losowej platformie między startem a końcem (jeśli są przynajmniej 3 poziomy)
-        if len(platforms) >= 3:
-            middle_platforms = platforms[1:-1]
-            key_platform = random.choice(middle_platforms)
-        else:
-            key_platform = platforms[len(platforms) // 2]
+                if level[y][x] != "." or visited[y][x]:
+                    continue
 
-        key_x = random.randint(key_platform[0], key_platform[1])
-        key_y = key_platform[2]
-        level[key_y - 1][key_x] = "K"
-
-    def addDecorations(self, level):
-        for _ in range(20):
-            x = random.randint(1, self.width - 2)
-            y = random.randint(1, self.height - 3)
-            if level[y][x] == ".":
-                level[y][x] = random.choice(["*", "T", "B"])
+                # Czy nad tym miejscem jest pusta przestrzeń?
+                if all(level[y - i][x] == "." for i in range(1, maxJumpHeight + 1)):
+                    # Czy w pobliżu (w poziomie) jest jakieś dostępne pole niżej?
+                    for dx in range(-maxStepWidth * 2, maxStepWidth * 2 + 1):
+                        tx = x + dx
+                        if 1 <= tx < width - 1 and visited[y + 1][tx]:
+                            # Postaw krótką platformę
+                            for i in range(-1, 2):
+                                if 0 <= x + i < width and level[y][x + i] == ".":
+                                    level[y][x + i] = "#"
+                            platformsPlaced += 1
+                            break

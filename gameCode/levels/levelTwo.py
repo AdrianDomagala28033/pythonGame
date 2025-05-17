@@ -45,7 +45,7 @@ def levelTwo(window):
 
         # Rysowanie
         window.fill((30, 30, 30))
-        levelElements.draw(window)
+        levelElements.draw(window, level.map, levelElements.player)
         pygame.display.flip()
 
     # Zamykanie Pygame
