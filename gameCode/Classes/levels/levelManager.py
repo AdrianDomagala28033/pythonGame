@@ -2,8 +2,9 @@ import random
 
 import pygame
 
-from gameCode.Classes.levels.levelClass import Level
-from gameCode.Classes.levels.levelGenerator import LevelGenerator
+
+from gameCode.Classes.levels.levelGenerator import generate_single_cave_level, generate_cave_with_floors
+from gameCode.Classes.levels.levelLoading import load_from_text_lines
 
 
 class LevelManager():
@@ -14,28 +15,23 @@ class LevelManager():
         self.map = ""
 
     def nextLevel(self):
-        self.drawLoadingScreen(self.window, "Generating level...")
+        print("Wywołanie")
         pygame.display.update()
-        generator = LevelGenerator()
-        levelData = generator.generateLevel()
+        levelData = generate_cave_with_floors()
 
-        for line in levelData:
-            print(line)
+        # for line in levelData:
+        #     print(line)
 
         # Zamień listę list znaków na listę stringów
         text_lines = ["".join(row) for row in levelData]
+        for p in text_lines:
+            print(p)
         self.map = text_lines
-        newLevel = Level.load_from_text_lines(text_lines, self.window)
+        newLevel = load_from_text_lines(text_lines, self.window, onLevelChange=self.nextLevel)
+        newLevel.door.onLevelChange = self.nextLevel
         self.levels.append(newLevel)
         self.currentLevelIndex += 1
         return newLevel
 
     def getCurrentLevel(self):
         return self.levels[self.currentLevelIndex]
-    def drawLoadingScreen(self, window, text="Loading..."):
-        window.fill((0, 0, 0))
-        font = pygame.font.SysFont("Arial", 32)
-        label = font.render(text, True, (255, 255, 255))
-        window.blit(label, (window.get_width() // 2 - label.get_width() // 2,
-                            window.get_height() // 2 - label.get_height() // 2))
-        pygame.display.flip()

@@ -2,7 +2,7 @@ import pygame
 
 from gameCode.Classes.levels.door import Door
 from gameCode.Classes.levels.levelClass import Level
-from gameCode.levels.levelTwo import levelTwo
+from gameCode.levels.game import game
 
 pygame.init()
 clock = pygame.time.Clock()
@@ -49,7 +49,7 @@ def menu(window):
                 run = False
         if(event.type == pygame.MOUSEBUTTONDOWN):
             if button_rect.collidepoint(event.pos):
-                levelTwo(window)
+                game(window)
                 run = False
         frame_timer += 1
         if frame_timer >= frame_speed:

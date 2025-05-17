@@ -1,6 +1,6 @@
 import pygame
 
-from gameCode.Classes.equipment.Item import Item
+from gameCode.Classes.UI.Item import Item
 
 
 class Key(Item):
@@ -10,7 +10,7 @@ class Key(Item):
         self.image = pygame.image.load("./images/key.png")
         self.width = self.image.get_width()
         self.height = self.image.get_height()
-        super().__init__("key", "klucz do otwarcia drzwi",0, "key", "./images/key.png", None)
+        super().__init__("key", "klucz do otwarcia drzwi",0, "key", "./images/key.png", None, False)
         self.collected = False
         self.hitbox = pygame.Rect(self.positionX, self.positionY, self.width, self.height)
 

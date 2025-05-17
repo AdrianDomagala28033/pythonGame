@@ -1,7 +1,9 @@
 import pygame
 
+
+
 class Door:
-    def __init__(self, x, y):
+    def __init__(self, x=0, y=0):
         self.positionX = x
         self.positionY = y
         self.images = [pygame.image.load(f"./images/doorAnimation/door{x}.png") for x in range(6)]  # lista obrazów
@@ -11,11 +13,20 @@ class Door:
         self.hitbox = pygame.Rect(self.positionX, self.positionY, self.width, self.height)
         self.visionRange = 100
         self.doorIndex = 0
+        self.onLevelChange = None
 
-    def tick(self, player):
+    def tick(self, player, window):
         self.detectPlayer(player)
-        if player.hitbox.colliderect(self.hitbox) and player.hasKey:
-            return True  # np. sygnał do zmiany poziomu
+        if self.hitbox.colliderect(player.hitbox) and player.hasKey:
+            item = player.inventory.getSelectedItem()
+            if item is not None and item.name == "key":
+                item.usable = True
+                if self.onLevelChange:
+                    item.use(player)
+                    print("Wywołuję onLevelChange:", self.onLevelChange)
+                    self.onLevelChange()
+            else:
+                return True
         return False
 
     def draw(self, window, cameraX, cameraY):

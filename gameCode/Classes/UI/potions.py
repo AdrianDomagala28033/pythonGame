@@ -1,5 +1,5 @@
-from gameCode.Classes.equipment.Item import Item
-from gameCode.Classes.equipment.itemType import ItemType
+from gameCode.Classes.UI.Item import Item
+from gameCode.Classes.UI.itemType import ItemType
 
 def heal_effect(player):
     healAmount = 30

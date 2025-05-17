@@ -1,5 +1,7 @@
 import pygame
 
+from gameCode.Classes.UI.minimap import drawMiniMap
+
 
 class Inventory:
     def __init__(self):
@@ -27,10 +29,11 @@ class Inventory:
         return weapon if weapon is not None else None
     def getSelectedWeapon(self):
         return self.weaponSlots[self.selectedWeaponIndex]
-
+    def getSelectedItem(self):
+        return self.usableItems[self.selectedItemIndex]
     def useItem(self, player):
         item = self.usableItems[self.selectedItemIndex]
-        if item:
+        if item and item.usable:
             item.use(player)
             self.usableItems[self.selectedItemIndex] = None
 

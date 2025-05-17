@@ -1,8 +1,9 @@
 import pygame
 from math import floor
 
-from gameCode.Classes.equipment.Inventory import Inventory
-from gameCode.Classes.equipment.potions import health_potion
+from gameCode.Classes.UI.Inventory import Inventory
+from gameCode.Classes.UI.minimap import drawMiniMap
+from gameCode.Classes.UI.potions import health_potion
 from gameCode.Classes.physicClass import Physic
 from gameCode.Classes.weapons.bowClass import Bow
 from gameCode.Classes.weapons.swordClass import Sword
@@ -35,10 +36,10 @@ class Player(Physic):
 
 
 
-    def tick(self, keys, grounds, enemy, window, cameraX,cameraY):
+    def tick(self, keys, grounds, enemy, window):
         self.physicTick(self, grounds)
         self.enemyCollision(enemy)
-        self.move(keys, window, grounds)
+        self.move(keys, window)
         self.useInventory()
         keys = pygame.key.get_pressed()
         self.handleJumpInput(keys, grounds)
@@ -113,14 +114,14 @@ class Player(Physic):
                 weapon.shoot(self.positionX - 10, self.positionY + 30)
             else:
                 weapon.shoot(self.positionX - 65, self.positionY + 30)
-    def move(self, keys, window, obstacles):
+    def move(self, keys, window):
         if (keys[pygame.K_a] and self.horVelocity > self.maxVelocity * -1):
             self.horVelocity -= self.acc
             self.direction = -1
         if (keys[pygame.K_d] and self.horVelocity < self.maxVelocity):
             self.horVelocity += self.acc
             self.direction = 1
-        if(keys[pygame.K_e]): #use item
+        if(keys[pygame.K_e]):
             self.inventory.useItem(self)
         if keys[pygame.K_c]:
             weapon = self.inventory.getSelectedWeapon()# shoot
