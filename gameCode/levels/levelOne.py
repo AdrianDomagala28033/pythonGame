@@ -4,7 +4,7 @@ from gameCode.Classes.playerClass import Player
 from gameCode.Classes.groundClass import Ground
 from gameCode.Classes.enemies.enemyClass import Enemy
 
-from gameCode.Classes.levels.levelClass import Level
+from gameCode.Classes.levels.levelManagment.levelClass import Level
 
 pygame.init()
 

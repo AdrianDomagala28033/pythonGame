@@ -125,7 +125,7 @@ def generate_cave_with_floors():
     LEVEL_WIDTH = random.randint(90, 130)
     FLOORS = random.randint(2, 4)
     FLOOR_GAP = random.randint(9, 13)
-    FLOOR_HEIGHT = random.randint(6, 10)
+    FLOOR_HEIGHT = random.randint(5, 8)
 
     LEVEL_HEIGHT = FLOORS * FLOOR_GAP + 4
     PLAYER_HEIGHT = 2
@@ -137,11 +137,9 @@ def generate_cave_with_floors():
 
     floorYs = [2 + i * FLOOR_GAP for i in range(FLOORS)]
 
-    # Kilka losowych przejść między piętrami
     stairXs = sorted(random.sample(range(10, LEVEL_WIDTH - 10), k=random.randint(FLOORS, FLOORS + 2)))
 
     for i, baseY in enumerate(floorYs):
-        # Tworzenie głównej ścieżki tunelu
         pathY = [baseY + FLOOR_HEIGHT // 2]
         for x in range(1, LEVEL_WIDTH - 1):
             lastY = pathY[-1]
@@ -149,7 +147,6 @@ def generate_cave_with_floors():
             newY = max(baseY, min(baseY + FLOOR_HEIGHT - PLAYER_HEIGHT, lastY + delta))
             pathY.append(newY)
 
-        # Wyżłobienie tunelu
         for x in range(1, LEVEL_WIDTH - 1):
             y = pathY[x - 1]
             tunnelHeight = random.randint(PLAYER_HEIGHT, PLAYER_HEIGHT + 2)
@@ -158,7 +155,6 @@ def generate_cave_with_floors():
                 if 1 <= ny < LEVEL_HEIGHT - 1:
                     level[ny][x] = '.'
 
-        # Dodanie pokojów
         for x in range(10, LEVEL_WIDTH - 10, random.randint(10, 15)):
             y = pathY[x]
             room_width = random.randint(4, 8)
@@ -169,43 +165,53 @@ def generate_cave_with_floors():
                     if 1 <= ry < LEVEL_HEIGHT - 1 and 1 <= rx < LEVEL_WIDTH - 1:
                         level[ry][rx] = '.'
 
-        # Przejścia pionowe z aktualnego piętra do niższego
         if i < FLOORS - 1:
             stairsThisFloor = random.sample(stairXs, k=min(len(stairXs), 2))
             for x in stairsThisFloor:
-                for y in range(baseY + FLOOR_HEIGHT, baseY + FLOOR_GAP):
-                    if 1 <= y < LEVEL_HEIGHT - 1:
-                        level[y][x] = 'G'
-        platformCount = random.randint(10, 18)  # więcej platform!
-        for _ in range(platformCount):
-            platLength = random.randint(3, 7)  # dłuższe platformy
-            platX = random.randint(2, LEVEL_WIDTH - platLength - 2)
-            platY = random.randint(baseY + 1, baseY + FLOOR_HEIGHT - 1)
+                hole_height = FLOOR_GAP - FLOOR_HEIGHT
+                hole_width = 6
+                hole_y_start = baseY + FLOOR_HEIGHT
+                for dx in range(-hole_width // 2, hole_width // 2 + 1):
+                    for dy in range(hole_height):
+                        ny = hole_y_start + dy
+                        nx = x + dx
+                        if 1 <= ny < LEVEL_HEIGHT - 1 and 1 <= nx < LEVEL_WIDTH - 1:
+                            level[ny][nx] = '.'
 
-            # Upewnij się, że platforma nie koliduje z podłogą tunelu
-            isSafe = all(level[platY][platX + dx] == '.' for dx in range(platLength))
-            if isSafe:
-                for dx in range(platLength):
-                    level[platY][platX + dx] = '#'
+    for i in range(FLOORS - 1):
+        baseY = floorYs[i]
+        nextBaseY = floorYs[i + 1]
+        vertical_space = nextBaseY - baseY - FLOOR_HEIGHT
 
+        platform_count = max(3, vertical_space // 2)
 
-    # Dodaj gracza (start górne piętro)
+        for p in range(platform_count):
+            plat_y = baseY + FLOOR_HEIGHT + 2 + p * 2
+
+            possible_xs = []
+            for x in range(2, LEVEL_WIDTH - 6):
+                above_clear = all(level[plat_y - 1 - dy][x + dx] == '.' for dx in range(4) for dy in range(2))
+                below_clear = all(level[plat_y + 1 + dy][x + dx] == '.' for dx in range(4) for dy in range(2))
+                place_clear = all(level[plat_y][x + dx] == '.' for dx in range(4))
+                if above_clear and below_clear and place_clear:
+                    possible_xs.append(x)
+
+            if possible_xs:
+                plat_x = random.choice(possible_xs)
+                for dx in range(4):
+                    level[plat_y][plat_x + dx] = '#'
+
     playerX = 2
     playerY = floorYs[0] + FLOOR_HEIGHT // 2
     level[playerY][playerX] = 'P'
 
-    # Dodaj drzwi (koniec na dolnym piętrze)
     doorX = LEVEL_WIDTH - 3
     doorY = floorYs[-1] + FLOOR_HEIGHT // 2
     level[doorY][doorX] = 'D'
     keyX = random.randint(5, LEVEL_WIDTH - 15)
     keyY = random.randint(5, LEVEL_HEIGHT - 15)
-    print(f"Kordy klucza x:{keyX} y:{keyY}")
     if level[keyY][keyX] == ".":
         level[keyY][keyX] = "K"
-
-
-    # Ramka poziomu
     for x in range(LEVEL_WIDTH):
         level[0][x] = '#'
         level[-1][x] = '#'
@@ -213,4 +219,49 @@ def generate_cave_with_floors():
         level[y][0] = '#'
         level[y][-1] = '#'
 
+    # --- Dodanie przeciwników i monet ---
+    enemy_types = ['E', 'R']
+    max_enemies = LEVEL_WIDTH * FLOORS // 10  # liczba przeciwników zależna od rozmiaru
+    max_coins = LEVEL_WIDTH * FLOORS // 8  # liczba monet
+    max_chests =  LEVEL_WIDTH * FLOORS // 30
+
+    enemies_placed = 0
+    coins_placed = 0
+    chestPlaced = 0
+
+    # Rozmieszczanie przeciwników na podłożu/platformach
+    while enemies_placed < max_enemies:
+        x = random.randint(2, LEVEL_WIDTH - 3)
+        y = random.randint(2, LEVEL_HEIGHT - 3)
+
+        # Na podłożu/platformie (#) i powyżej powietrze (.)
+        if (level[y][x] == '#'
+                and level[y - 1][x] == '.'
+                and level[y][x] != 'P' and level[y][x] != 'D'):
+            # Sprawdź, czy miejsce wolne od innych wrogów
+            if all(level[y - 1][xx] != 'E' and level[y - 1][xx] != 'R' for xx in
+                   range(max(0, x - 1), min(LEVEL_WIDTH, x + 2))):
+                enemy_char = random.choice(enemy_types)
+                level[y - 1][x] = enemy_char
+                enemies_placed += 1
+
+    # Rozmieszczanie monet na powietrzu
+    while coins_placed < max_coins:
+        x = random.randint(2, LEVEL_WIDTH - 3)
+        y = random.randint(2, LEVEL_HEIGHT - 3)
+        if (level[y][x] == '.'
+                and level[y][x] != 'P' and level[y][x] != 'D'):
+            level[y][x] = 'C'
+            coins_placed += 1
+    while chestPlaced < max_chests:
+        x = random.randint(2, LEVEL_WIDTH - 3)
+        y = random.randint(2, LEVEL_HEIGHT - 3)
+        if (level[y][x] == '.'
+                and level[y][x] != 'P' and level[y][x] != 'D' and level[y][x] != 'C' and level[y+1][x] == "#"):
+            level[y][x] = 'c'
+            chestPlaced += 1
+
     return level
+
+
+

@@ -24,20 +24,34 @@ class Inventory:
                 return True
         return False
 
-    def getDistanceWeapon(self):
-        weapon = self.weaponSlots[self.selectedWeaponIndex]
-        return weapon if weapon is not None else None
     def getSelectedWeapon(self):
         return self.weaponSlots[self.selectedWeaponIndex]
     def getSelectedItem(self):
         return self.usableItems[self.selectedItemIndex]
+    def getWeaponList(self):
+        return self.weaponSlots
+
+    def setItemList(self, itemList):
+        self.usableItems = [None] * 4
+        for i in range(min(4, len(itemList))):
+            self.usableItems[i] = itemList[i]
+
+    def setWeaponList(self, weaponList):
+        self.weaponSlots = [None] * 2
+        for i in range(min(2, len(weaponList))):
+            self.weaponSlots[i] = weaponList[i]
+    def getItemList(self):
+        if self.usableItems != None:
+            return self.usableItems
+        else:
+            return None
     def useItem(self, player):
         item = self.usableItems[self.selectedItemIndex]
         if item and item.usable:
             item.use(player)
             self.usableItems[self.selectedItemIndex] = None
 
-    def drawInventory(self, window, x = 20, y=20):
+    def drawInventory(self, window, x = 10, y=90):
         slotSize = 50
         spacing = 10
 
@@ -56,5 +70,5 @@ class Inventory:
             if i == self.selectedWeaponIndex:
                 pygame.draw.rect(window, (0, 255, 0), rect, 3, border_radius=5)
             if weapon:
-                icon = pygame.image.load(weapon.icon)
+                icon = pygame.image.load(weapon.image)
                 window.blit(icon, (rect.x, rect.y))

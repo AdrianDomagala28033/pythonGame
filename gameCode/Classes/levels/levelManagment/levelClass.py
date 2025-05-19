@@ -1,11 +1,12 @@
 import pygame
 
 class Level:
-    def __init__(self, tiles, player, enemies, coins, key, door, width, height):
+    def __init__(self, tiles, player, enemies, coins, key, door, chests, width, height):
         self.tiles = tiles
         self.player = player
         self.enemies = enemies
         self.coins = coins
+        self.chests = chests
         self.levelWidth = width
         self.levelHeight = height
         self.cameraX = 0
@@ -31,14 +32,15 @@ class Level:
         self.door.tick(self.player, window)
         for k in self.key:
             k.tick(self.player)
-
+        for c in self.chests:
+            c.tick(self.player)
         for enemy in self.enemies:
             enemy.tick(self.player, obstacles, window)
 
         selectedWeapon = self.player.inventory.getSelectedWeapon()
         if selectedWeapon and selectedWeapon.tag == "bow":
             for b in selectedWeapon.projectiles:
-                 b.bulletColision(self.player, self.enemies)
+                 b.bulletColision(self.player, self.enemies, obstacles)
 
     def draw(self, window):
         for tile in self.tiles:
@@ -53,10 +55,11 @@ class Level:
                 self.coins.remove(c)
         for k in self.key:
             k.draw(window, self.cameraX, self.cameraY)
+        for c in self.chests:
+            c.draw(window, self.cameraX, self.cameraY)
         self.door.draw(window, self.cameraX, self.cameraY)
 
-        window.blit(
-            pygame.font.Font.render(pygame.font.SysFont("arial", 48), f"Score: {self.player.coins}", True, (255, 255, 255)), (1000, 0))
+
         self.player.draw(window, self.cameraX, self.cameraY)
 
 

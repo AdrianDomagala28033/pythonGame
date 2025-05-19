@@ -1,13 +1,13 @@
-import nextlevel
 import pygame
 
 from gameCode.Classes.coinClass import Coin
 from gameCode.Classes.enemies.ghost import GhostEnemy
 from gameCode.Classes.enemies.robugs import RobugEnemy
 from gameCode.Classes.groundClass import Ground
-from gameCode.Classes.levels.door import Door
-from gameCode.Classes.levels.key import Key
-from gameCode.Classes.levels.levelClass import Level
+from gameCode.Classes.levels.levelElements.chest import Chest
+from gameCode.Classes.levels.levelElements.door import Door
+from gameCode.Classes.levels.levelElements.key import Key
+from gameCode.Classes.levels.levelManagment.levelClass import Level
 from gameCode.Classes.playerClass import Player
 
 
@@ -19,6 +19,7 @@ def load_from_file(file_path, window, onLevelChange=None):
     coins = []
     key = []
     door = Door(0, 0)
+    chests = []
     player = None
 
     with open(file_path, "r") as f:
@@ -49,10 +50,12 @@ def load_from_file(file_path, window, onLevelChange=None):
             elif char == "D":
                 door = Door(world_x, world_y)
                 door.onLevelChange = onLevelChange
+            elif char == "c":
+                chests.append(Chest(world_x, world_y))
 
     level_width = len(lines[0].strip()) * tile_size
     level_height = len(lines) * tile_size
-    level = Level(tiles, player, enemies, coins, key, door, level_width, level_height)
+    level = Level(tiles, player, enemies, coins, key, door, chests, level_width, level_height)
     return level
 
 
@@ -63,6 +66,7 @@ def load_from_text_lines(lines, window, onLevelChange=None):
     coins = []
     key = []
     door = Door(0, 0)
+    chests = []
     player = None
 
     for y, line in enumerate(lines):
@@ -91,9 +95,10 @@ def load_from_text_lines(lines, window, onLevelChange=None):
             elif char == "D":
                 door = Door(world_x, world_y)
                 door.onLevelChange = onLevelChange
-                print("Przypisuję onLevelChange do door:", onLevelChange)
+            elif char == "c":
+                chests.append(Chest(world_x, world_y))
 
     level_width = len(lines[0].strip()) * tile_size
     level_height = len(lines) * tile_size
-    level = Level(tiles, player, enemies, coins, key, door, level_width, level_height)
+    level = Level(tiles, player, enemies, coins, key, door, chests, level_width, level_height)
     return level

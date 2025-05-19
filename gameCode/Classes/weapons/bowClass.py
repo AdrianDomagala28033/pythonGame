@@ -5,7 +5,7 @@ from gameCode.Classes.weapons.weapon import Weapon
 
 class Bow(Weapon):
     def __init__(self, name, damage, cooldown, direction, icon=None):
-        super().__init__(name, damage, range=0)
+        super().__init__(name, damage, icon, value=0, range=0)
         self.icon = icon
         self.tag = "bow"
         self.cooldown = cooldown

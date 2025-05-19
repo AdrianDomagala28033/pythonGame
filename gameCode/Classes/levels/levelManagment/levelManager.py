@@ -1,10 +1,9 @@
-import random
-
 import pygame
 
 
-from gameCode.Classes.levels.levelGenerator import generate_single_cave_level, generate_cave_with_floors
-from gameCode.Classes.levels.levelLoading import load_from_text_lines
+from gameCode.Classes.levels.levelManagment.levelGenerator import generate_cave_with_floors
+from gameCode.Classes.levels.levelManagment.levelLoading import load_from_text_lines
+from gameCode.saves.saveManager import loadGame, saveGame
 
 
 class LevelManager():
@@ -16,6 +15,7 @@ class LevelManager():
 
     def nextLevel(self):
         print("Wywołanie")
+
         pygame.display.update()
         levelData = generate_cave_with_floors()
 
@@ -28,9 +28,12 @@ class LevelManager():
             print(p)
         self.map = text_lines
         newLevel = load_from_text_lines(text_lines, self.window, onLevelChange=self.nextLevel)
+
         newLevel.door.onLevelChange = self.nextLevel
         self.levels.append(newLevel)
         self.currentLevelIndex += 1
+
+
         return newLevel
 
     def getCurrentLevel(self):

@@ -2,11 +2,12 @@ import pygame
 from math import floor
 
 from gameCode.Classes.UI.Inventory import Inventory
-from gameCode.Classes.UI.minimap import drawMiniMap
-from gameCode.Classes.UI.potions import health_potion
+from gameCode.Classes.UI.InventoryItems.potions import health_potion
 from gameCode.Classes.physicClass import Physic
 from gameCode.Classes.weapons.bowClass import Bow
 from gameCode.Classes.weapons.swordClass import Sword
+from gameCode.fonts.fonts import addFont
+from gameCode.saves.saveManager import saveGame, filterUsedKeys
 
 
 class Player(Physic):
@@ -33,7 +34,7 @@ class Player(Physic):
         self.hasKey = False
         self.inventory.addWeapon(Sword("Basic Sword", 10, 100, self.direction, "./images/weapons/standardSword.PNG"))
         self.inventory.addWeapon(Bow("Basic Bow", 12, 100, self.direction, "./images/weapons/standardBow.PNG"))
-
+        self.wantInteract = False
 
 
     def tick(self, keys, grounds, enemy, window):
@@ -58,18 +59,17 @@ class Player(Physic):
     def tickPosition(self, levelWidth):
         self.positionX = max(0, min(self.positionX, levelWidth - self.width))
     def draw(self, window, cameraX, cameraY):
-        self.healthBar(window)
+        self.drawUI(window)
         self.walkAnimation(window, cameraX, cameraY)
-        self.inventory.drawInventory(window)
-        weapon = self.inventory.getDistanceWeapon()
+        weapon = self.inventory.getSelectedWeapon()
         if weapon and weapon.tag == "bow":
             for proj in weapon.projectiles:
                 proj.draw(window, cameraX, cameraY)
 
 
     def healthBar(self, window):
-        pygame.draw.rect(window, (0, 0, 0), (3, 3, self.width + 5, 15))
-        pygame.draw.rect(window, (235, 64, 52), (5, 5, (self.width) * (self.health / 100), 10))
+        pygame.draw.rect(window, (0, 0, 0), (50, 5, self.width * (self.health / 100) + 4, 20))
+        pygame.draw.rect(window, (235, 64, 52), (52, 7, (self.width) * (self.health / 100), 15))
 
     def changeDirection(self, window, cameraX, cameraY):
         if (self.direction > 0):
@@ -107,7 +107,7 @@ class Player(Physic):
 
                 self.verVelocity = -5
     def shoot(self, window):
-        weapon = self.inventory.getDistanceWeapon()
+        weapon = self.inventory.getSelectedWeapon()
         if weapon:
             weapon.direction = self.direction
             if(self.direction > 0):
@@ -121,7 +121,7 @@ class Player(Physic):
         if (keys[pygame.K_d] and self.horVelocity < self.maxVelocity):
             self.horVelocity += self.acc
             self.direction = 1
-        if(keys[pygame.K_e]):
+        if(keys[pygame.K_w]):
             self.inventory.useItem(self)
         if keys[pygame.K_c]:
             weapon = self.inventory.getSelectedWeapon()# shoot
@@ -129,9 +129,23 @@ class Player(Physic):
                 self.shoot(window)
             else:
                 pass
-
-        if (keys[pygame.K_f]): #test
-            self.inventory.addItem(health_potion)
+        if (keys[pygame.K_f]):
+            itemList = []
+            for w in self.inventory.getItemList():
+                if w != None:
+                    itemList.append(w)
+            saveGame({
+                "player_x": self.positionX,
+                "player_y": self.positionY,
+                "coins": self.coins,
+                "weaponInventory": [w.toDict() for w in self.inventory.getWeaponList()],
+                "itemInventory": [i.toDict() for i in filterUsedKeys(self.inventory.getItemList()) if i],
+                "health": self.health
+            })
+        if (keys[pygame.K_e]): #use item
+            self.wantInteract = True
+        if not (keys[pygame.K_e]):
+            self.wantInteract = False
         if not (keys[pygame.K_a] or keys[pygame.K_d]):
             if (self.horVelocity > 0):
                 self.horVelocity -= self.acc
@@ -157,3 +171,12 @@ class Player(Physic):
             self.inventory.selectedWeaponIndex = 0
         elif keys[pygame.K_6]:
             self.inventory.selectedWeaponIndex = 1
+    def drawUI(self, window):
+        window.blit(pygame.image.load(f"./images/UI.png"), (10, 0))
+        self.healthBar(window)
+        self.inventory.drawInventory(window)
+        font = addFont("./fonts/Jacquard_24/Jacquard24-Regular.ttf")
+        textSurface = font.render(f"{self.coins}", True, (255,255,255))
+        window.blit(textSurface, (50, 30))
+    def interact(self):
+        pass

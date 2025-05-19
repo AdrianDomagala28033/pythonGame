@@ -1,9 +1,9 @@
 import pygame
 import sys
 from gameCode.Classes.UI.minimap import drawMiniMap
-from gameCode.Classes.levels.levelManager import LevelManager
-from gameCode.Classes.levels.levelLoading import load_from_file
-
+from gameCode.Classes.levels.levelManagment.levelManager import LevelManager
+from gameCode.Classes.levels.levelManagment.levelLoading import load_from_file
+from gameCode.saves.saveManager import loadGame, saveGame
 
 
 def game(window):
@@ -16,10 +16,12 @@ def game(window):
     level_manager = LevelManager(window)
 
     try:
+
         tutorial_level = load_from_file("levels/levelsTXT/tutorial", window, onLevelChange=level_manager.nextLevel)
         level_manager.levels.append(tutorial_level)
         level_manager.currentLevelIndex = 0
         level_manager.map = ["".join(row) for row in open("levels/levelsTXT/tutorial")]
+
     except Exception as e:
         print("❌ Błąd ładowania poziomu:", e)
         pygame.quit()
@@ -42,6 +44,14 @@ def game(window):
             new_level = level_manager.nextLevel()
             if new_level:
                 current_level = new_level
+                savedData = loadGame()
+                if savedData:
+                    data = loadGame()
+                    new_level.player.coins = data["coins"]
+                    new_level.player.health = data["health"]
+                    new_level.player.inventory.setWeaponList(data["weaponInventory"])
+                    new_level.player.inventory.setItemList(data["itemInventory"])
+
 
         current_level.update_camera()
         current_level.update(current_level.tiles, window)

@@ -1,7 +1,7 @@
 import pygame
 
-from gameCode.Classes.levels.door import Door
-from gameCode.Classes.levels.levelClass import Level
+from gameCode.Classes.levels.levelElements.door import Door
+from gameCode.Classes.levels.levelManagment.levelClass import Level
 from gameCode.levels.game import game
 
 pygame.init()
@@ -41,7 +41,7 @@ def menu(window):
     frame_timer = 0
     frame_speed = 5
     frame_direction = 1
-    level = Level([], [], [], [], [], Door(0,0),0, 0)
+    level = Level([], [], [], [], [], Door(0,0), [],0, 0)
     while run:
         clock.tick(60)
         for event in pygame.event.get():

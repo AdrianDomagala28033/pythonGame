@@ -1,5 +1,6 @@
 import pygame
 
+from gameCode.saves.saveManager import saveGame
 
 
 class Door:
@@ -21,8 +22,9 @@ class Door:
             item = player.inventory.getSelectedItem()
             if item is not None and item.name == "key":
                 item.usable = True
+                item.use(player)
                 if self.onLevelChange:
-                    item.use(player)
+
                     print("Wywołuję onLevelChange:", self.onLevelChange)
                     self.onLevelChange()
             else:

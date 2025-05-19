@@ -33,15 +33,19 @@ class Projectile(Physic):
         else:
             pygame.draw.rect(window, (255, 255, 255), (self.positionX - cameraX, self.positionY - cameraY, 10, 10))
         self.update()
-    def bulletColision(self, player, enemy):
-        for arrow in player.inventory.getDistanceWeapon().projectiles:
-            if not arrow.active:
-                continue
-            for e in enemy:
-                if arrow.hitbox.colliderect(e.hitbox):
-                    arrow.active = False
+    def bulletColision(self, player, enemy, obstacles):
+        if player.inventory.getSelectedWeapon().tag == "bow":
+            for arrow in player.inventory.getSelectedWeapon().projectiles:
+                if not arrow.active:
+                    continue
+                for obj in obstacles:
+                    if arrow.hitbox.colliderect(obj.hitbox):
+                        arrow.active = False
+                for e in enemy:
+                    if arrow.hitbox.colliderect(e.hitbox):
+                        arrow.active = False
 
-                    e.takeDamage(player.inventory.getDistanceWeapon().damage, player)
-                    if e.health <= 0:
-                        enemy.remove(e)
-                    break
+                        e.takeDamage(player.inventory.getSelectedWeapon().damage, player)
+                        if e.health <= 0:
+                            enemy.remove(e)
+                        break
