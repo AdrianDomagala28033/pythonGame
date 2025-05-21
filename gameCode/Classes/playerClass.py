@@ -33,8 +33,10 @@ class Player(Physic):
         self.coins = 0
         self.hasKey = False
         self.inventory.addWeapon(Sword("Basic Sword", 10, 100, self.direction, "./images/weapons/standardSword.PNG"))
-        self.inventory.addWeapon(Bow("Basic Bow", 12, 100, self.direction, "./images/weapons/standardBow.PNG"))
+        self.inventory.addWeapon(Bow("Basic Bow", 12, 500, self.direction, "./images/weapons/standardBow.PNG"))
         self.wantInteract = False
+        self.lastAutosaveTime = pygame.time.get_ticks()
+        self.autosaveInterval = 500
 
 
     def tick(self, keys, grounds, enemy, window):
@@ -55,10 +57,14 @@ class Player(Physic):
             self.invulnerable_timer -= 1
             if self.invulnerable_timer <= 0:
                 self.invulnerable = False
+        currentTime = pygame.time.get_ticks()
+        if currentTime - self.lastAutosaveTime >= self.autosaveInterval:
+            self.lastAutosaveTime = currentTime
+            self.performAutosave()
 
     def tickPosition(self, levelWidth):
         self.positionX = max(0, min(self.positionX, levelWidth - self.width))
-    def draw(self, window, cameraX, cameraY):
+    def draw(self, window, cameraX=0, cameraY=0):
         self.drawUI(window)
         self.walkAnimation(window, cameraX, cameraY)
         weapon = self.inventory.getSelectedWeapon()
@@ -127,21 +133,23 @@ class Player(Physic):
             weapon = self.inventory.getSelectedWeapon()# shoot
             if weapon.tag == "bow":
                 self.shoot(window)
+                weapon.tick(window)
             else:
                 pass
         if (keys[pygame.K_f]):
-            itemList = []
-            for w in self.inventory.getItemList():
-                if w != None:
-                    itemList.append(w)
-            saveGame({
-                "player_x": self.positionX,
-                "player_y": self.positionY,
-                "coins": self.coins,
-                "weaponInventory": [w.toDict() for w in self.inventory.getWeaponList()],
-                "itemInventory": [i.toDict() for i in filterUsedKeys(self.inventory.getItemList()) if i],
-                "health": self.health
-            })
+            pass
+            # itemList = []
+            # for w in self.inventory.getItemList():
+            #     if w != None:
+            #         itemList.append(w)
+            # saveGame({
+            #     "player_x": self.positionX,
+            #     "player_y": self.positionY,
+            #     "coins": self.coins,
+            #     "weaponInventory": [w.toDict() for w in self.inventory.getWeaponList()],
+            #     "itemInventory": [i.toDict() for i in filterUsedKeys(self.inventory.getItemList()) if i],
+            #     "health": self.health
+            # })
         if (keys[pygame.K_e]): #use item
             self.wantInteract = True
         if not (keys[pygame.K_e]):
@@ -180,3 +188,14 @@ class Player(Physic):
         window.blit(textSurface, (50, 30))
     def interact(self):
         pass
+    def performAutosave(self):
+        print("Autosave")
+        itemList = [i for i in filterUsedKeys(self.inventory.getItemList()) if i]
+        saveGame({
+            "player_x": self.positionX,
+            "player_y": self.positionY,
+            "coins": self.coins,
+            "weaponInventory": [w.toDict() for w in self.inventory.getWeaponList()],
+            "itemInventory": [i.toDict() for i in itemList],
+            "health": self.health
+        })

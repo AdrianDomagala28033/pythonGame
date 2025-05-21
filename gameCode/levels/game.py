@@ -42,15 +42,8 @@ def game(window):
         if current_level.door.tick(current_level.player, window):
             print("➡️ Przejście do kolejnego poziomu")
             new_level = level_manager.nextLevel()
-            if new_level:
-                current_level = new_level
-                savedData = loadGame()
-                if savedData:
-                    data = loadGame()
-                    new_level.player.coins = data["coins"]
-                    new_level.player.health = data["health"]
-                    new_level.player.inventory.setWeaponList(data["weaponInventory"])
-                    new_level.player.inventory.setItemList(data["itemInventory"])
+            new_level.player.draw(window)
+
 
 
         current_level.update_camera()
@@ -61,7 +54,6 @@ def game(window):
 
         if keys[pygame.K_m]:
             drawMiniMap(window, level_manager.map, current_level.player)
-
         pygame.display.flip()
 
     pygame.quit()

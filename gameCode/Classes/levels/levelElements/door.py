@@ -1,6 +1,6 @@
 import pygame
 
-from gameCode.saves.saveManager import saveGame
+from gameCode.saves.saveManager import saveGame, filterUsedKeys
 
 
 class Door:
@@ -24,7 +24,6 @@ class Door:
                 item.usable = True
                 item.use(player)
                 if self.onLevelChange:
-
                     print("Wywołuję onLevelChange:", self.onLevelChange)
                     self.onLevelChange()
             else:

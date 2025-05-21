@@ -14,7 +14,8 @@ class Bow(Weapon):
         self.direction = direction
 
     def tick(self, window):
-        pass
+        if self.last_shot_time > 0:
+            self.last_shot_time -= 1
 
     def shoot(self, x, y):
         now = pygame.time.get_ticks()
@@ -23,4 +24,13 @@ class Bow(Weapon):
             self.projectiles.append(arrow)
             self.last_shot_time = now
 
+    def toDict(self):
+        return {
+            "tag": "bow",
+            "name": self.name,
+            "damage": self.damage,
+            "cooldown": self.cooldown,
+            "direction": self.direction,
+            "icon": self.icon
+        }
 

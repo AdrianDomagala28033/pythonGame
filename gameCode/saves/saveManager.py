@@ -4,6 +4,8 @@ import os
 from gameCode.Classes.UI.InventoryItems.Item import Item
 from gameCode.Classes.UI.InventoryItems.itemType import ItemType
 from gameCode.Classes.UI.InventoryItems.potions import healEffect
+from gameCode.Classes.weapons.bowClass import Bow
+from gameCode.Classes.weapons.swordClass import Sword
 from gameCode.Classes.weapons.weapon import Weapon
 
 saveFile = "savegame.json"
@@ -53,15 +55,25 @@ def loadItemFromDict(data: dict):
             effect=effect,
             usable=data["usable"]
         )
-    elif data.get("category") == "weapon":
+    elif data.get("tag") == "sword":
         # Zakładam, że masz klasę Weapon – jeśli nie, stwórz ją podobnie do Item
 
-        return Weapon(
+        return Sword(
             name=data["name"],
             damage=data["damage"],
-            image=data["image"],
-            value=data["value"],
-            range=data["range"]
+            cooldown=data["cooldown"],
+            direction=data["direction"],
+            icon=data["icon"]
+        )
+    elif data.get("tag") == "bow":
+        # Zakładam, że masz klasę Weapon – jeśli nie, stwórz ją podobnie do Item
+
+        return Bow(
+            name=data["name"],
+            damage=data["damage"],
+            cooldown=data["cooldown"],
+            direction=data["direction"],
+            icon=data["icon"]
         )
     else:
         raise ValueError(f"Nieznana kategoria przedmiotu: {data}")

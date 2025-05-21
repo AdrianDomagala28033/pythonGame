@@ -21,3 +21,12 @@ class Sword(Weapon):
                     if e.health <= 0:
                         enemies.remove(e)
                 self.lastAttackTime = now
+    def toDict(self):
+        return {
+            "tag": "sword",
+            "name": self.name,
+            "damage": self.damage,
+            "cooldown": self.cooldown,
+            "direction": self.direction,
+            "icon": self.icon
+        }

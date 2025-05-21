@@ -2,13 +2,61 @@ from perlin_noise import PerlinNoise
 import random
 
 TILE_SIZE = 50
-LEVEL_WIDTH = 100
-LEVEL_HEIGHT = 30
+LEVEL_WIDTH = random.randint(100, 175)
+LEVEL_HEIGHT = random.randint(30,60)
 PLAYER_HEIGHT = 2
 PLAYER_JUMP_HEIGHT = 4
 ROOM_COUNT = 4
 ROOM_WIDTH = LEVEL_WIDTH // ROOM_COUNT
+def populateLevel(level):
+    enemyTypes = ['E', 'R']
+    width = len(level[0])
+    height = len(level)
 
+    maxEnemies = width // 5
+    maxCoins = width // 4
+    maxChests = width // 15
+
+    enemiesPlaced = 0
+    coinsPlaced = 0
+    chestsPlaced = 0
+
+    # Dodaj przeciwników
+    for _ in range(maxEnemies * 5):  # próby zabezpieczające przed nieskończoną pętlą
+        if enemiesPlaced >= maxEnemies:
+            break
+        x = random.randint(2, width - 3)
+        y = random.randint(2, height - 3)
+        if (level[y][x] == '#' and level[y - 1][x] == '.' and
+                level[y][x] not in ['P', 'D']):
+            if all(level[y - 1][xx] not in enemyTypes for xx in range(max(0, x - 1), min(width, x + 2))):
+                level[y - 1][x] = random.choice(enemyTypes)
+                enemiesPlaced += 1
+
+    # Dodaj monety
+    for _ in range(maxCoins * 5):
+        if coinsPlaced >= maxCoins:
+            break
+        x = random.randint(2, width - 3)
+        y = random.randint(2, height - 3)
+        if level[y][x] == '.' and level[y][x] not in ['P', 'D', 'K', 'c']:
+            level[y][x] = 'C'
+            coinsPlaced += 1
+
+    # Dodaj skrzynki
+    for _ in range(maxChests * 5):
+        if chestsPlaced >= maxChests:
+            break
+        x = random.randint(2, width - 3)
+        y = random.randint(2, height - 3)
+        if (level[y][x] == '.' and
+                level[y][x] not in ['P', 'D', 'K', 'C'] and
+                level[y + 1][x] == '#'):
+            level[y][x] = 'c'
+            chestsPlaced += 1
+
+    # Możliwość dodania więcej w przyszłości (np. mikstury, NPC, pułapki itd.)
+    return level
 def generate_normal_level():
     SEED = random.randint(0, 10000)
     noise = PerlinNoise(octaves=3, seed=SEED)
@@ -66,59 +114,6 @@ def generate_normal_level():
     for y in range(LEVEL_HEIGHT):
         level[y][0] = '#'
         level[y][LEVEL_WIDTH - 1] = '#'
-
-    return level
-def generate_single_cave_level():
-    SEED = random.randint(0, 10000)
-    noise = PerlinNoise(octaves=4, seed=SEED)
-    threshold = 0.1
-
-    # Start: plansza z ramką
-    level = [['#' for _ in range(LEVEL_WIDTH)] for _ in range(LEVEL_HEIGHT)]
-
-    # Wyznacz główny tunel
-    pathY = [LEVEL_HEIGHT // 2]
-    for x in range(1, LEVEL_WIDTH - 1):
-        lastY = pathY[-1]
-        delta = random.choice([-1, 0, 1])
-        newY = max(2, min(LEVEL_HEIGHT - PLAYER_HEIGHT - 2, lastY + delta))
-        pathY.append(newY)
-
-    # Otwórz korytarz
-    for x in range(1, LEVEL_WIDTH - 1):
-        y = pathY[x - 1]
-        for h in range(-PLAYER_JUMP_HEIGHT, PLAYER_HEIGHT + 1):
-            ny = y + h
-            if 1 <= ny < LEVEL_HEIGHT - 1:
-                level[ny][x] = '.'
-
-    # Dodaj pokoje losowo przy tunelu
-    for x in range(10, LEVEL_WIDTH - 10, 10):
-        y = pathY[x]
-        room_width = random.randint(4, 6)
-        room_height = random.randint(3, 5)
-        for dx in range(-room_width // 2, room_width // 2 + 1):
-            for dy in range(-room_height // 2, room_height // 2 + 1):
-                rx, ry = x + dx, y + dy
-                if 1 <= ry < LEVEL_HEIGHT - 1 and 1 <= rx < LEVEL_WIDTH - 1:
-                    level[ry][rx] = '.'
-
-    # Dodatkowe wygładzenie (opcjonalne)
-    for y in range(1, LEVEL_HEIGHT - 1):
-        for x in range(1, LEVEL_WIDTH - 1):
-            n = noise([x / LEVEL_WIDTH, y / LEVEL_HEIGHT])
-            if n > threshold and level[y][x] == '#':
-                level[y][x] = '.'
-
-    # Dodaj gracza
-    playerX = 1
-    playerY = pathY[playerX]
-    level[playerY][playerX] = 'P'
-
-    # Dodaj drzwi
-    doorX = LEVEL_WIDTH - 2
-    doorY = pathY[doorX]
-    level[doorY][doorX] = 'D'
 
     return level
 def generate_cave_with_floors():
@@ -262,6 +257,84 @@ def generate_cave_with_floors():
             chestPlaced += 1
 
     return level
+def generate_single_cave_level():
+    SEED = random.randint(0, 10000)
+    noise = PerlinNoise(octaves=4, seed=SEED)
+    threshold = 0.01
 
+    level = [['#' for _ in range(LEVEL_WIDTH)] for _ in range(LEVEL_HEIGHT)]
+
+    pathY = [LEVEL_HEIGHT // 2]
+    for x in range(1, LEVEL_WIDTH - 1):
+        lastY = pathY[-1]
+        delta = random.choice([-1, 0, 1])
+        newY = max(2, min(LEVEL_HEIGHT - PLAYER_HEIGHT - 2, lastY + delta))
+        pathY.append(newY)
+
+    for x in range(1, LEVEL_WIDTH - 1):
+        y = pathY[x - 1]
+        for h in range(-PLAYER_JUMP_HEIGHT, PLAYER_HEIGHT + 1):
+            ny = y + h
+            if 1 <= ny < LEVEL_HEIGHT - 1:
+                level[ny][x] = '.'
+
+    room_centers = []
+    for x in range(10, LEVEL_WIDTH - 10, 10):
+        y = pathY[x]
+        room_width = random.randint(4, 6)
+        room_height = random.randint(3, 5)
+        for dx in range(-room_width // 2, room_width // 2 + 1):
+            for dy in range(-room_height // 2, room_height // 2 + 1):
+                rx, ry = x + dx, y + dy
+                if 1 <= ry < LEVEL_HEIGHT - 1 and 1 <= rx < LEVEL_WIDTH - 1:
+                    level[ry][rx] = '.'
+        room_centers.append((x, y))
+
+    for y in range(1, LEVEL_HEIGHT - 1):
+        for x in range(1, LEVEL_WIDTH - 1):
+            n = noise([x / LEVEL_WIDTH, y / LEVEL_HEIGHT])
+            if n > threshold and level[y][x] == '#':
+                level[y][x] = '.'
+
+    playerX = 1
+    playerY = pathY[playerX]
+    level[playerY][playerX] = 'P'
+
+    doorX = LEVEL_WIDTH - 2
+    doorY = pathY[doorX]
+    level[doorY][doorX] = 'D'
+
+    # Klucz
+    keyX = random.randint(5, 15)
+    keyY = pathY[keyX]
+    level[keyY][keyX] = 'K'
+
+    # Platformy: więcej, dłuższe, niżej
+    for y in range(4, LEVEL_HEIGHT - 4):  # zostaw marginesy góra/dół
+        for x in range(3, LEVEL_WIDTH - 10):  # marginesy na boki
+            if random.random() < 0.1:
+                platformLength = random.randint(4, 7)
+                valid = True
+
+                # Sprawdź, czy cała przestrzeń dookoła platformy jest wolna
+                for dx in range(-2, platformLength + 2):
+                    px = x + dx
+                    for dy in range(-2, 3):  # 2 kratki nad, 2 pod
+                        py = y + dy
+                        if 0 <= px < LEVEL_WIDTH and 0 <= py < LEVEL_HEIGHT:
+                            if level[py][px] != '.':
+                                valid = False
+                                break
+                    if not valid:
+                        break
+
+                # Jeśli miejsce wokół platformy jest czyste, twórz platformę
+                if valid:
+                    for dx in range(platformLength):
+                        level[y][x + dx] = '#'
+
+    # Przeciwnicy: E (zwykły), R (rzadszy)
+
+    return level
 
 
