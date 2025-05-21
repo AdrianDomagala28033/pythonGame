@@ -16,7 +16,18 @@ class LevelManager():
 
     def nextLevel(self):
         print("Wywołanie")
-
+        currentLevel = self.getCurrentLevel() if self.currentLevelIndex >= 0 else None
+        if currentLevel and currentLevel.player:
+            player = currentLevel.player
+            saveGame({
+                "player_x": player.positionX,
+                "player_y": player.positionY,
+                "coins": player.coins,
+                "weaponInventory": [w.toDict() for w in player.inventory.getWeaponList()],
+                "itemInventory": [i.toDict() for i in filterUsedKeys(player.inventory.getItemList()) if i],
+                "health": player.health
+            })
+            print("Zapisano grę przed zmianą poziomu.")
         pygame.display.update()
         level = generate_single_cave_level()
         levelData = populateLevel(level)

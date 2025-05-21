@@ -1,3 +1,5 @@
+import random
+
 import pygame
 
 from gameCode.Classes.coinClass import Coin
@@ -13,7 +15,11 @@ from gameCode.Classes.playerClass import Player
 from gameCode.Classes.weapons.bowClass import Bow
 from gameCode.Classes.weapons.swordClass import Sword
 
-
+tileImages = [
+    pygame.image.load("./images/terrain/darkBricks.png"),
+    pygame.image.load("./images/terrain/meshBrick.png"),
+    pygame.image.load("./images/terrain/runeBrick.png"),
+]
 def load_from_file(file_path, window, onLevelChange=None):
     tile_size = 50
     tiles = []
@@ -32,7 +38,7 @@ def load_from_file(file_path, window, onLevelChange=None):
             world_x = x * tile_size
             world_y = y * tile_size
             if char == "#":
-                tileImage = pygame.image.load("./images/terrain/bricks.png")
+                tileImage = random.choice(tileImages)
                 tiles.append(Ground(world_x, world_y, tileImage))
             elif char == "G":
                 tileImage = pygame.image.load("./images/terrain/ground.png")
@@ -97,7 +103,7 @@ def load_from_text_lines(lines, window, onLevelChange=None):
             world_x = x * tile_size
             world_y = y * tile_size
             if char == "#":
-                tileImage = pygame.image.load("./images/terrain/bricks.png")
+                tileImage = random.choice(tileImages)
                 tiles.append(Ground(world_x, world_y, tileImage))
             elif char == "G":
                 tileImage = pygame.image.load("./images/terrain/ground.png")

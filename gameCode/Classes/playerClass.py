@@ -7,21 +7,30 @@ from gameCode.Classes.physicClass import Physic
 from gameCode.Classes.weapons.bowClass import Bow
 from gameCode.Classes.weapons.swordClass import Sword
 from gameCode.fonts.fonts import addFont
+from gameCode.images.animations import load_animation_frames, load_single_frame
 from gameCode.saves.saveManager import saveGame, filterUsedKeys
 
 
 class Player(Physic):
 
     def __init__(self, window):
+        # self.standImage = load_single_frame("./images/playerAnimation/character.png", 45, 80, frame_index=8)
         self.standImage = pygame.image.load(f"./images/playerAnimation/player0.png")
         width = 45
         height = self.standImage.get_height()
         self.maxHealth = 100
         self.health = self.maxHealth
         super().__init__(0, 600, width, height, 0.5, 5)
+        # self.jumpImg = load_single_frame("./images/playerAnimation/character.png", 45, 60, frame_index=2)
+        # self.walkImg = self.walkImg = load_animation_frames(
+        #                 "./images/playerAnimation/character.png",
+        #                 frame_width=43,
+        #                 frame_height=120,
+        #                 rows=1
+        #             )
         self.jumpImg = pygame.image.load(f"./images/playerAnimation/player9.png")
         self.walkImg = [pygame.image.load(f"./images/playerAnimation/player{x}.png") for x in range(1, 7)]
-        self.walkIndex = 4
+        self.walkIndex = 0
         self.tag = "player"
         self.jumping = False
         self.direction = 1
@@ -57,10 +66,9 @@ class Player(Physic):
             self.invulnerable_timer -= 1
             if self.invulnerable_timer <= 0:
                 self.invulnerable = False
-        currentTime = pygame.time.get_ticks()
-        if currentTime - self.lastAutosaveTime >= self.autosaveInterval:
-            self.lastAutosaveTime = currentTime
-            self.performAutosave()
+        if self.health <=0:
+            self.health = self.maxHealth
+            print("Respawned")
 
     def tickPosition(self, levelWidth):
         self.positionX = max(0, min(self.positionX, levelWidth - self.width))
@@ -89,8 +97,8 @@ class Player(Physic):
             window.blit(pygame.transform.flip(self.jumpImg, True, False), (self.positionX - cameraX, self.positionY - cameraY))
         elif(self.horVelocity != 0):
             self.changeDirection(window, cameraX, cameraY)
-            self.walkIndex += 0.3
-            if self.walkIndex > 5:
+            self.walkIndex += 0.25
+            if self.walkIndex > 3:
                 self.walkIndex = 0
         else:
             if(self.direction < 0):
@@ -138,18 +146,6 @@ class Player(Physic):
                 pass
         if (keys[pygame.K_f]):
             pass
-            # itemList = []
-            # for w in self.inventory.getItemList():
-            #     if w != None:
-            #         itemList.append(w)
-            # saveGame({
-            #     "player_x": self.positionX,
-            #     "player_y": self.positionY,
-            #     "coins": self.coins,
-            #     "weaponInventory": [w.toDict() for w in self.inventory.getWeaponList()],
-            #     "itemInventory": [i.toDict() for i in filterUsedKeys(self.inventory.getItemList()) if i],
-            #     "health": self.health
-            # })
         if (keys[pygame.K_e]): #use item
             self.wantInteract = True
         if not (keys[pygame.K_e]):
