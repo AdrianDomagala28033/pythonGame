@@ -1,0 +1,46 @@
+{
+    "player_x": 3540.5,
+    "player_y": 580,
+    "coins": 114,
+    "weaponInventory": [
+        {
+            "tag": "sword",
+            "name": "Basic Sword",
+            "damage": 10,
+            "cooldown": 100,
+            "direction": 1,
+            "icon": "./images/weapons/standardSword.PNG"
+        },
+        {
+            "tag": "bow",
+            "name": "Basic Bow",
+            "damage": 12,
+            "cooldown": 500,
+            "direction": -1,
+            "icon": "./images/weapons/standardBow.PNG"
+        }
+    ],
+    "itemInventory": [
+        {
+            "category": "item",
+            "name": "key",
+            "description": "klucz do otwarcia drzwi",
+            "value": 0,
+            "type": null,
+            "icon": "./images/key.png",
+            "effect": null,
+            "usable": true
+        },
+        {
+            "category": "item",
+            "name": "Mikstura Zdrowia",
+            "description": "Przywraca 30 punkt\u00f3w zdrowia.",
+            "value": 10,
+            "type": "CONSUMABLE",
+            "icon": "./images/healthPotion.PNG",
+            "effect": "healEffect",
+            "usable": true
+        }
+    ],
+    "health": 100
+}
