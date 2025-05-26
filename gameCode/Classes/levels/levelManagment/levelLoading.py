@@ -38,7 +38,7 @@ def load_from_file(file_path, window, onLevelChange=None):
             world_x = x * tile_size
             world_y = y * tile_size
             if char == "#":
-                tileImage = random.choice(tileImages)
+                tileImage = pygame.image.load("./images/terrain/bricks.png")
                 tiles.append(Ground(world_x, world_y, tileImage))
             elif char == "G":
                 tileImage = pygame.image.load("./images/terrain/ground.png")

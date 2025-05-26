@@ -7,30 +7,37 @@ from gameCode.Classes.physicClass import Physic
 from gameCode.Classes.weapons.bowClass import Bow
 from gameCode.Classes.weapons.swordClass import Sword
 from gameCode.fonts.fonts import addFont
-from gameCode.images.animations import load_animation_frames, load_single_frame
+from gameCode.images.animations import load_animation_frames, load_single_frame, scaleAnimationFrames
 from gameCode.saves.saveManager import saveGame, filterUsedKeys
 
 
 class Player(Physic):
 
     def __init__(self, window):
-        # self.standImage = load_single_frame("./images/playerAnimation/character.png", 45, 80, frame_index=8)
-        self.standImage = pygame.image.load(f"./images/playerAnimation/player0.png")
-        width = 45
-        height = self.standImage.get_height()
+        self.image = pygame.transform.scale2x(load_single_frame("./images/playerAnimation/walkingCharacter.png", 21, 32, frame_index=2))
+        self.standImages = scaleAnimationFrames(load_animation_frames(
+                        "./images/playerAnimation/idleCharacter.png",
+                        frame_width=19,
+                        frame_height=30,
+                        rows=1
+                    ))
+        # self.standImage = pygame.image.load(f"./images/playerAnimation/player0.png")
+        width = self.image.get_width()
+        height = self.image.get_height()
         self.maxHealth = 100
         self.health = self.maxHealth
         super().__init__(0, 600, width, height, 0.5, 5)
-        # self.jumpImg = load_single_frame("./images/playerAnimation/character.png", 45, 60, frame_index=2)
-        # self.walkImg = self.walkImg = load_animation_frames(
-        #                 "./images/playerAnimation/character.png",
-        #                 frame_width=43,
-        #                 frame_height=120,
-        #                 rows=1
-        #             )
-        self.jumpImg = pygame.image.load(f"./images/playerAnimation/player9.png")
-        self.walkImg = [pygame.image.load(f"./images/playerAnimation/player{x}.png") for x in range(1, 7)]
+        self.jumpImg = pygame.transform.scale2x(load_single_frame("./images/playerAnimation/walkingCharacter.png", 22, 32, frame_index=2))
+        self.walkImg = scaleAnimationFrames(load_animation_frames(
+                        "./images/playerAnimation/walkingCharacter.png",
+                        frame_width=24,
+                        frame_height=32,
+                        rows=1
+                    ))
+        # self.jumpImg = pygame.image.load(f"./images/playerAnimation/player9.png")
+        # self.walkImg = [pygame.image.load(f"./images/playerAnimation/player{x}.png") for x in range(1, 7)]
         self.walkIndex = 0
+        self.standIndex = 0
         self.tag = "player"
         self.jumping = False
         self.direction = 1
@@ -97,14 +104,17 @@ class Player(Physic):
             window.blit(pygame.transform.flip(self.jumpImg, True, False), (self.positionX - cameraX, self.positionY - cameraY))
         elif(self.horVelocity != 0):
             self.changeDirection(window, cameraX, cameraY)
-            self.walkIndex += 0.25
-            if self.walkIndex > 3:
+            self.walkIndex += 0.15
+            if self.walkIndex >= len(self.walkImg):
                 self.walkIndex = 0
         else:
-            if(self.direction < 0):
-                window.blit(pygame.transform.flip(self.standImage, True, False), (self.positionX - cameraX, self.positionY - cameraY))
-            else:
-                window.blit(self.standImage, (self.positionX - cameraX, self.positionY - cameraY))
+            self.standIndex += 0.1  # lub inna prędkość animacji
+            if self.standIndex >= len(self.standImages):
+                self.standIndex = 0
+            image = self.standImages[floor(self.standIndex)]
+            if self.direction < 0:
+                image = pygame.transform.flip(image, True, False)
+            window.blit(image, (self.positionX - cameraX, self.positionY - cameraY))
 
     def enemyCollision(self, enemy):
         for e in enemy:
@@ -159,7 +169,7 @@ class Player(Physic):
             self.height = 45
             self.acc = 0
         if not (keys[pygame.K_s]):
-            self.height = self.standImage.get_height()
+            self.height = self.image.get_height()
             self.acc = 0.5
     def useInventory(self):
         keys = pygame.key.get_pressed()
