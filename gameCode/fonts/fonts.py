@@ -1,4 +1,4 @@
 import pygame
 
-def addFont(path):
-    return pygame.font.Font(path, 48)
+def addFont(path, size):
+    return pygame.font.Font(path, size)

@@ -28,7 +28,7 @@ def load_from_file(file_path, window, onLevelChange=None):
     key = []
     door = Door(0, 0)
     chests = []
-    player = None
+    player = Player(window)
 
     with open(file_path, "r") as f:
         lines = f.readlines()
@@ -44,7 +44,6 @@ def load_from_file(file_path, window, onLevelChange=None):
                 tileImage = pygame.image.load("./images/terrain/ground.png")
                 tiles.append(Ground(world_x, world_y, tileImage))
             elif char == "P":
-                player = Player(window)
                 from gameCode.saves.saveManager import loadGame
 
                 gameData = loadGame() or {}
@@ -66,9 +65,9 @@ def load_from_file(file_path, window, onLevelChange=None):
                 player.positionX = world_x
                 player.positionY = world_y
             elif char == "E":
-                enemies.append(GhostEnemy(world_x, world_y, 50, 100))
+                enemies.append(GhostEnemy(world_x, world_y, player.level))
             elif char == "R":
-                enemies.append(RobugEnemy(world_x, world_y, 10, 100))
+                enemies.append(RobugEnemy(world_x, world_y, player.level))
             elif char == "S":
                 enemies.append(ShooterEnemy(world_x, world_y, 15, 100))
             elif char == "C":
@@ -79,7 +78,7 @@ def load_from_file(file_path, window, onLevelChange=None):
                 door = Door(world_x, world_y)
                 door.onLevelChange = onLevelChange
             elif char == "c":
-                chests.append(Chest(world_x, world_y))
+                chests.append(Chest(world_x, world_y, random.choice(["loot", "weapon"])))
 
     level_width = len(lines[0].strip()) * tile_size
     level_height = len(lines) * tile_size
@@ -95,7 +94,7 @@ def load_from_text_lines(lines, window, onLevelChange=None):
     key = []
     door = Door(0, 0)
     chests = []
-    player = None
+    player = Player(window)
 
     for y, line in enumerate(lines):
         line = line.rstrip("\n")  # nie używamy .strip()
@@ -109,7 +108,6 @@ def load_from_text_lines(lines, window, onLevelChange=None):
                 tileImage = pygame.image.load("./images/terrain/ground.png")
                 tiles.append(Ground(world_x, world_y, tileImage))
             elif char == "P":
-                player = Player(window)
                 from gameCode.saves.saveManager import loadGame
 
                 gameData = loadGame() or {}
@@ -131,9 +129,9 @@ def load_from_text_lines(lines, window, onLevelChange=None):
                 player.positionX = world_x
                 player.positionY = world_y
             elif char == "E":
-                enemies.append(GhostEnemy(world_x, world_y, 50, 100))
+                enemies.append(GhostEnemy(world_x, world_y, player.level))
             elif char == "R":
-                enemies.append(RobugEnemy(world_x, world_y, 10, 100))
+                enemies.append(RobugEnemy(world_x, world_y, player.level))
             elif char == "C":
                 coins.append(Coin(world_x, world_y))
             elif char == "K":
@@ -142,7 +140,7 @@ def load_from_text_lines(lines, window, onLevelChange=None):
                 door = Door(world_x, world_y)
                 door.onLevelChange = onLevelChange
             elif char == "c":
-                chests.append(Chest(world_x, world_y))
+                chests.append(Chest(world_x, world_y, random.choice(["loot", "weapon"])))
 
     level_width = len(lines[0].strip()) * tile_size
     level_height = len(lines) * tile_size

@@ -12,3 +12,5 @@ class Weapon:
         self.tag = ""
     def toDict(self):
             return dict(category="weapon", name = self.name, damage = self.damage, range = self.range, image=self.image, value=self.value, tag=self.tag)
+    def getEffectiveDamage(self, playerLevel):
+        return self.damage + int(playerLevel * 0.5)

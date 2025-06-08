@@ -47,10 +47,10 @@ def menu(window):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-        if(event.type == pygame.MOUSEBUTTONDOWN):
-            if button_rect.collidepoint(event.pos):
-                game(window)
-                run = False
+            if(event.type == pygame.MOUSEBUTTONDOWN):
+                if button_rect.collidepoint(event.pos):
+                    game(window)
+                    run = False
         frame_timer += 1
         if frame_timer >= frame_speed:
             current_frame += frame_direction

@@ -36,6 +36,11 @@ class Level:
             c.tick(self.player)
         for enemy in self.enemies:
             enemy.tick(self.player, obstacles, window)
+            if enemy.health <= 0:
+                enemy.die(self.player)
+            if enemy.dead:
+                self.enemies.remove(enemy)
+
 
         selectedWeapon = self.player.inventory.getSelectedWeapon()
         if selectedWeapon and selectedWeapon.tag == "bow":
@@ -58,7 +63,6 @@ class Level:
         for c in self.chests:
             c.draw(window, self.cameraX, self.cameraY)
         self.door.draw(window, self.cameraX, self.cameraY)
-
 
         self.player.draw(window, self.cameraX, self.cameraY)
 

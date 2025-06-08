@@ -1,4 +1,6 @@
 import pygame
+
+from gameCode.Classes.levels.levelManagment.levelClass import Level
 from gameCode.Classes.weapons.weapon import Weapon
 
 
@@ -17,9 +19,7 @@ class Sword(Weapon):
             for e in enemies:
                 distance = abs(player.positionX - e.positionX)
                 if distance < self.range and abs(player.positionY - e.positionY) < player.height:
-                    e.takeDamage(self.damage, player)
-                    if e.health <= 0:
-                        enemies.remove(e)
+                    e.takeDamage(self.getEffectiveDamage(player.level), player)
                 self.lastAttackTime = now
     def toDict(self):
         return {

@@ -1,5 +1,9 @@
 import pygame
-from gameCode.levels.levelOne import levelOne
+
+def back_to_menu(window):
+    from gameCode.levels.menu import menu
+    menu(window)
+
 
 def gameOver(window):
     run = True
@@ -13,7 +17,7 @@ def gameOver(window):
                 run = False
             if (event.type == pygame.MOUSEBUTTONDOWN):
                 if button_rect.collidepoint(event.pos):
-                    levelOne(window)
+                    back_to_menu(window)
                     run = False
 
         window.fill((0, 4, 0))

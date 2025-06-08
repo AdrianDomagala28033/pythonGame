@@ -2,11 +2,13 @@ import pygame
 import random
 
 from gameCode.Classes.UI.InventoryItems.potions import health_potion
+from gameCode.Classes.UI.chestInventory import ChestInventory
 from gameCode.Classes.levels.levelElements.objects import Object
+from gameCode.Classes.weapons.bowClass import Bow
 
 
 class Chest(Object):
-    def __init__(self, x, y):
+    def __init__(self, x, y, chestType):
         self.positionX = x
         self.positionY = y
         self.fullChestImages = [pygame.image.load(f"./images/chestAnimation/chest{x+1}.png") for x in range(3)]
@@ -20,6 +22,17 @@ class Chest(Object):
         self.opened = False
         self.usable = False
         self.hitbox = pygame.Rect(self.positionX, self.positionY, self.width, self.height)
+        self.inventory = ChestInventory()
+        self.inventory.addItem(health_potion)
+        self.uiOpened = False
+        self.chestType = chestType  # "loot", "weapon", "stash"
+        self.reusable = chestType == "stash"
+        self.inventory = ChestInventory()
+        if chestType == "loot":
+            self.inventory.addItem(health_potion)
+        elif chestType == "weapon":
+            self.inventory.addWeapon(Bow("Basic Bow", 12, 500, 1, "./images/weapons/standardBow.PNG"))
+            # self.inventory.addWeapon()
     def tick(self, player):
         self.detectPlayer(player)
         self.useObject(player)
@@ -44,8 +57,11 @@ class Chest(Object):
             return self.emptyChestImages
         else:
             return self.fullChestImages
+
     def useObject(self, player):
-        if player.hitbox.colliderect(self.hitbox) and player.wantInteract and not self.opened:
-            player.inventory.addItem(health_potion)
-            player.coins += random.randint(0, 5)
+        if not self.reusable and self.opened:
+            return
+
+        if player.hitbox.colliderect(self.hitbox) and player.wantInteract:
             self.opened = True
+            self.uiOpened = False

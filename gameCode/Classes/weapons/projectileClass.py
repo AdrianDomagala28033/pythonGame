@@ -1,12 +1,12 @@
 import pygame
 
+from gameCode.Classes.levels.levelManagment.levelClass import Level
 from gameCode.Classes.physicClass import Physic
 
 class Projectile(Physic):
     def __init__(self,x,y, direction):
-        super().__init__(x, y, 5, 2, 5, 7)
-        self.image = pygame.Surface((10, 10), pygame.SRCALPHA)  # Tworzymy przezroczysty Surface
-        pygame.draw.rect(self.image, (255, 0, 0), (0, 0, 10, 10))
+        self.image = pygame.image.load('./images/weapons/BasicArrow.PNG')
+        super().__init__(x, y, self.image.get_width(), self.image.get_height(), 5, 7)
         self.hitbox = pygame.Rect(self.positionX, self.positionY, self.width, self.height)
         self.direction = direction
         self.tag = "projectile"
@@ -29,9 +29,9 @@ class Projectile(Physic):
         if not self.active:
             return
         if self.direction > 0:
-            pygame.draw.rect(window, (255, 255, 255), (self.positionX - cameraX, self.positionY - cameraY, 10, 10))
+            window.blit(pygame.transform.scale2x(self.image), (self.positionX - cameraX - 30, self.positionY - cameraY - 10))
         else:
-            pygame.draw.rect(window, (255, 255, 255), (self.positionX - cameraX, self.positionY - cameraY, 10, 10))
+            window.blit(pygame.transform.flip(pygame.transform.scale2x(self.image), True, False), (self.positionX - cameraX - 50, self.positionY - cameraY -10))
         self.update()
     def bulletColision(self, player, enemy, obstacles):
         if player.inventory.getSelectedWeapon().tag == "bow":
@@ -44,8 +44,5 @@ class Projectile(Physic):
                 for e in enemy:
                     if arrow.hitbox.colliderect(e.hitbox):
                         arrow.active = False
-
-                        e.takeDamage(player.inventory.getSelectedWeapon().damage, player)
-                        if e.health <= 0:
-                            enemy.remove(e)
+                        e.takeDamage(player.inventory.getSelectedWeapon().getEffectiveDamage(player.level), player)
                         break

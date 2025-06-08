@@ -1,5 +1,7 @@
 import pygame
 import sys
+
+from gameCode.Classes.UI.chestInventory import InventoryUiExchange
 from gameCode.Classes.UI.minimap import drawMiniMap
 from gameCode.Classes.levels.levelManagment.levelManager import LevelManager
 from gameCode.Classes.levels.levelManagment.levelLoading import load_from_file
@@ -14,6 +16,8 @@ def game(window):
     pygame.display.set_caption("The last exit")
     clock = pygame.time.Clock()
     level_manager = LevelManager(window)
+    inventoryUI = None
+    gamePaused = False
 
     try:
 
@@ -34,10 +38,29 @@ def game(window):
             if event.type == pygame.QUIT:
                 running = False
 
+            if inventoryUI and inventoryUI.active:
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    inventoryUI.toggle()
+                    gamePaused = False
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    inventoryUI.handleClick(pygame.mouse.get_pos())
+
         keys = pygame.key.get_pressed()
         current_level = level_manager.getCurrentLevel()
 
-        current_level.player.tick(keys, current_level.tiles, current_level.enemies, window)
+        if not gamePaused:
+            current_level.player.tick(keys, current_level.tiles, current_level.enemies, window)
+
+            # Interakcja ze skrzyniami
+            for chest in current_level.chests:
+                chest.tick(current_level.player)
+
+                if chest.opened and not chest.uiOpened:
+                    inventoryUI = InventoryUiExchange(current_level.player.inventory, chest.inventory)
+                    inventoryUI.toggle()
+                    gamePaused = True
+                    chest.uiOpened = True
+                    print("✅ Otwieram interfejs skrzyni")
 
         if current_level.door.tick(current_level.player, window):
             print("➡️ Przejście do kolejnego poziomu")
@@ -54,6 +77,8 @@ def game(window):
 
         if keys[pygame.K_m]:
             drawMiniMap(window, level_manager.map, current_level.player)
+        if inventoryUI and inventoryUI.active:
+            inventoryUI.draw(window)
         pygame.display.flip()
 
     pygame.quit()

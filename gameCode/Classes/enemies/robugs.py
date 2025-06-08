@@ -4,16 +4,15 @@ from gameCode.Classes.enemies.enemyClass import Enemy
 
 
 class RobugEnemy(Enemy):
-    def __init__(self,x, y, damage, health, image=pygame.image.load("./images/enemiesAnimation/robugAnimation/robug.png")):
-        super().__init__(x, y, image)
+    def __init__(self,x, y, playerLevel, image=pygame.image.load("./images/enemiesAnimation/robugAnimation/robug.png")):
+        super().__init__(x, y, image, 100, 10, 15, playerLevel)
         self.standImage = image
         self.detectImages = [pygame.image.load(f"./images/enemiesAnimation/robugAnimation/robug{x+1}.png") for x in range(6)]
         self.detectIndex = 1
-        self.damage = damage
-        self.health = health
         self.tag = "robug"
         self.visionRange = 250
         self.direction = -1
+        self.knockbackForce = 0
 
     def tick(self, player, obstacles, window):
         self.physicTick(player, obstacles)

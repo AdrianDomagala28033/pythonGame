@@ -5,11 +5,9 @@ from gameCode.Classes.enemies.enemyClass import Enemy
 
 
 class GhostEnemy(Enemy):
-    def __init__(self,x, y, damage, health, image=pygame.image.load("./images/enemiesAnimation/ghost.png")):
-        super().__init__(x, y, image)
+    def __init__(self,x, y, playerLevel, image=pygame.image.load("./images/enemiesAnimation/ghost.png")):
+        super().__init__(x, y, image, 100, 10, 15, playerLevel)
         self.image = image
-        self.damage = damage
-        self.health = health
         self.tag = "ghost"
 
     def tick(self, player, obstacles, window):

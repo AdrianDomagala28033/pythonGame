@@ -1,16 +1,24 @@
+import random
+
 import pygame
 
+from gameCode.Classes.coinClass import Coin
+from gameCode.Classes.levels.levelElements.key import Key
+from gameCode.Classes.levels.levelManagment.levelClass import Level
 from gameCode.Classes.physicClass import Physic
 import pygame
 from gameCode.Classes.physicClass import Physic
 
 class Enemy(Physic):
-    def __init__(self, x, y, image):
+    def __init__(self, x, y, image, baseHealth, baseDamage, xpValue, playerLevel):
         width, height = image.get_width(), image.get_height()
         super().__init__(x, y, width, height, acc=2, maxVelocity=5)
         self.image = image
-        self.health = 100
-        self.damage = 10
+        self.baseHealth = baseHealth
+        self.baseDamage = baseDamage
+        self.health = baseHealth + int(playerLevel * 5)
+        self.damage = baseDamage + int(playerLevel * 1.5)
+        self.xpValue = xpValue
         self.direction = 1
         self.startPosition = x
         self.patrol_range = (-200, 200)
@@ -24,6 +32,13 @@ class Enemy(Physic):
         self.knockbackForce = 10
         self.invulnerable = False
         self.hitbox = pygame.Rect(self.positionX, self.positionY, self.width, self.height)
+        self.dropTable = [
+            ("coin", 0.5),
+            ("health_potion", 0.3),
+            ("key", 0.1)
+        ]
+        self.droppedItemsList = []
+        self.dead = False
 
     def tick(self, player, obstacles, window):
         self.physicTick(player, obstacles)
@@ -59,7 +74,10 @@ class Enemy(Physic):
         self.knockbackTimer = 10
         self.invulnerable = True
         self.invulnerable_timer = 30
-
+        if self.dead:
+            return
+        if self.health <= 0 and not self.dead:
+            self.die(player)
 
     def knockback(self, player):
         if self.tag != "robug" and self.grounded == True:
@@ -97,3 +115,9 @@ class Enemy(Physic):
         else:
             if self.state == "follow" and pygame.time.get_ticks() - self.lastSeenPlayerTime > 1000:
                 self.state = "returning"
+    def die(self, player):
+        if self.dead:
+            return
+
+        self.dead = True
+        player.gainXP(self.xpValue)

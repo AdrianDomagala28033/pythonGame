@@ -1,7 +1,7 @@
 {
-    "player_x": 3460.0,
-    "player_y": 582,
-    "coins": 114,
+    "player_x": 3600.528213942497,
+    "player_y": 586,
+    "coins": 152,
     "weaponInventory": [
         {
             "tag": "sword",
@@ -16,7 +16,7 @@
             "name": "Basic Bow",
             "damage": 12,
             "cooldown": 500,
-            "direction": -1,
+            "direction": 1,
             "icon": "./images/weapons/standardBow.PNG"
         }
     ],
@@ -32,5 +32,5 @@
             "usable": true
         }
     ],
-    "health": 40
+    "health": 100
 }
