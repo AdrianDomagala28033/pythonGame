@@ -27,3 +27,5 @@ class Key(Item):
             self.collected = True
             player.hasKey = True
             player.inventory.addItem(self)
+            for quest in player.questManager.quests:
+                quest.updateProgress(eventType="collect", target="key")

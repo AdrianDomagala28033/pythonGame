@@ -1,12 +1,13 @@
 import pygame
 
 class Level:
-    def __init__(self, tiles, player, enemies, coins, key, door, chests, width, height):
+    def __init__(self, tiles, player, enemies, coins, key, door, chests, width, height, NPCs):
         self.tiles = tiles
         self.player = player
         self.enemies = enemies
         self.coins = coins
         self.chests = chests
+        self.NPCs = NPCs
         self.levelWidth = width
         self.levelHeight = height
         self.cameraX = 0
@@ -34,6 +35,8 @@ class Level:
             k.tick(self.player)
         for c in self.chests:
             c.tick(self.player)
+        for npc in self.NPCs:
+            npc.tick(self.player)
         for enemy in self.enemies:
             enemy.tick(self.player, obstacles, window)
             if enemy.health <= 0:
@@ -62,6 +65,8 @@ class Level:
             k.draw(window, self.cameraX, self.cameraY)
         for c in self.chests:
             c.draw(window, self.cameraX, self.cameraY)
+        for npc in self.NPCs:
+            npc.draw(window, self.cameraX, self.cameraY)
         self.door.draw(window, self.cameraX, self.cameraY)
 
         self.player.draw(window, self.cameraX, self.cameraY)

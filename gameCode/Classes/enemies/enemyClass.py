@@ -118,6 +118,6 @@ class Enemy(Physic):
     def die(self, player):
         if self.dead:
             return
-
+        player.questManager.updateQuests("kill", "ghost")
         self.dead = True
         player.gainXP(self.xpValue)

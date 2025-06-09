@@ -2,6 +2,7 @@ import random
 
 import pygame
 
+from gameCode.Classes.NPC.questNPC import QuestNPC
 from gameCode.Classes.coinClass import Coin
 from gameCode.Classes.enemies.ghost import GhostEnemy
 from gameCode.Classes.enemies.robugs import RobugEnemy
@@ -12,6 +13,8 @@ from gameCode.Classes.levels.levelElements.door import Door
 from gameCode.Classes.levels.levelElements.key import Key
 from gameCode.Classes.levels.levelManagment.levelClass import Level
 from gameCode.Classes.playerClass import Player
+from gameCode.Classes.quests.Quest import Quest
+from gameCode.Classes.quests.loadFromFileQuests import loadQuestsFromFile
 from gameCode.Classes.weapons.bowClass import Bow
 from gameCode.Classes.weapons.swordClass import Sword
 
@@ -28,6 +31,8 @@ def load_from_file(file_path, window, onLevelChange=None):
     key = []
     door = Door(0, 0)
     chests = []
+    NPCs = []
+    quests = []
     player = Player(window)
 
     with open(file_path, "r") as f:
@@ -45,7 +50,6 @@ def load_from_file(file_path, window, onLevelChange=None):
                 tiles.append(Ground(world_x, world_y, tileImage))
             elif char == "P":
                 from gameCode.saves.saveManager import loadGame
-
                 gameData = loadGame() or {}
                 savedData = loadGame()
                 if savedData:
@@ -79,10 +83,13 @@ def load_from_file(file_path, window, onLevelChange=None):
                 door.onLevelChange = onLevelChange
             elif char == "c":
                 chests.append(Chest(world_x, world_y, random.choice(["loot", "weapon"])))
+            elif char == "Q":
+                npc = QuestNPC(world_x, world_y, loadQuestsFromFile("./Classes/quests/quests.json"))
+                NPCs.append(npc)
 
     level_width = len(lines[0].strip()) * tile_size
     level_height = len(lines) * tile_size
-    level = Level(tiles, player, enemies, coins, key, door, chests, level_width, level_height)
+    level = Level(tiles, player, enemies, coins, key, door, chests, level_width, level_height, NPCs)
     return level
 
 
@@ -94,6 +101,8 @@ def load_from_text_lines(lines, window, onLevelChange=None):
     key = []
     door = Door(0, 0)
     chests = []
+    NPCs = []
+    quests = []
     player = Player(window)
 
     for y, line in enumerate(lines):
@@ -141,10 +150,13 @@ def load_from_text_lines(lines, window, onLevelChange=None):
                 door.onLevelChange = onLevelChange
             elif char == "c":
                 chests.append(Chest(world_x, world_y, random.choice(["loot", "weapon"])))
-
+            elif char == "Q":
+                quests.append(Quest("Zabij 3 duchy", "Pozbądź się 3 upiorów w lochu", "kill", "ghost", 3))
+                npc = QuestNPC(world_x, world_y, quests)
+                NPCs.append(npc)
     level_width = len(lines[0].strip()) * tile_size
     level_height = len(lines) * tile_size
-    level = Level(tiles, player, enemies, coins, key, door, chests, level_width, level_height)
+    level = Level(tiles, player, enemies, coins, key, door, chests, level_width, level_height, NPCs)
     return level
 
 def createWeaponFromDict(data):

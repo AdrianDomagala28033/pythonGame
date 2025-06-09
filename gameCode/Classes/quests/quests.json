@@ -1,0 +1,21 @@
+[
+  {
+    "name": "Zabij duchy",
+    "goalType": "kill",
+    "target": "ghost",
+    "requiredAmount": 5,
+    "description": "Zabij 5 duchów",
+    "reward": {
+      "gold": 50,
+      "xp": 100
+    }
+  },
+  {
+    "name": "Zbierz klucz",
+    "description": "Potrzebujesz klucza do dalszej drogi.",
+    "goalType": "collect",
+    "target": "key",
+    "requiredAmount": 1,
+    "rewards": { "coins": 15, "items": ["potion"], "weapon": null }
+  }
+]

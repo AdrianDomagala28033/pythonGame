@@ -60,6 +60,11 @@ class Player(Physic):
         self.lastAutosaveTime = pygame.time.get_ticks()
         self.autosaveInterval = 500
 
+        # === QUESTY ===
+        from gameCode.Classes.quests.questManager import QuestManager
+        self.questManager = QuestManager()
+
+
 
     # === GŁÓWNY TICK ===
     def tick(self, keys, grounds, enemies, window):
@@ -102,8 +107,11 @@ class Player(Physic):
 
         self.wantInteract = keys[pygame.K_e]
 
-        if not keys[pygame.K_a] and not keys[pygame.K_d]:
-            self.horVelocity *= 0.9
+        if not (keys[pygame.K_a] or keys[pygame.K_d]):
+            if (self.horVelocity > 0):
+                self.horVelocity -= self.acc
+            elif (self.horVelocity < 0):
+                self.horVelocity += self.acc
 
         if keys[pygame.K_s]:
             self.height = 45
@@ -153,6 +161,7 @@ class Player(Physic):
         levelSurface = font.render(f"Poziom postaci: {self.level}", True, (255,255,255))
         window.blit(textSurface, (50, 30))
         window.blit(levelSurface, (550, 30))
+        y = 60
 
     def walkAnimation(self, window, cameraX, cameraY):
         if self.jumping and self.direction > 0 and self.grounded and self.verVelocity != 0:

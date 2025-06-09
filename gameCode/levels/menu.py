@@ -41,7 +41,7 @@ def menu(window):
     frame_timer = 0
     frame_speed = 5
     frame_direction = 1
-    level = Level([], [], [], [], [], Door(0,0), [],0, 0)
+    level = Level([], [], [], [], [], Door(0,0), [],0, 0, [])
     while run:
         clock.tick(60)
         for event in pygame.event.get():

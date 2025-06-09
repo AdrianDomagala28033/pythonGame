@@ -1,7 +1,7 @@
 {
-    "player_x": 3600.528213942497,
+    "player_x": 3568.0,
     "player_y": 586,
-    "coins": 152,
+    "coins": 191,
     "weaponInventory": [
         {
             "tag": "sword",
@@ -20,17 +20,6 @@
             "icon": "./images/weapons/standardBow.PNG"
         }
     ],
-    "itemInventory": [
-        {
-            "category": "item",
-            "name": "Mikstura Zdrowia",
-            "description": "Przywraca 30 punkt\u00f3w zdrowia.",
-            "value": 10,
-            "type": null,
-            "icon": "./images/healthPotion.PNG",
-            "effect": "healEffect",
-            "usable": true
-        }
-    ],
-    "health": 100
+    "itemInventory": [],
+    "health": 33
 }
