@@ -1,5 +1,9 @@
+from networkx.algorithms.bipartite.generators import random_graph
 from perlin_noise import PerlinNoise
 import random
+from gameCode.Classes.levels.levelManagment.generator.room import Room
+from gameCode.Classes.levels.levelManagment.generator.roomTemplates import roomTemplates
+from gameCode.Classes.levels.levelManagment.levelLoading import load_from_text_lines
 
 TILE_SIZE = 50
 LEVEL_WIDTH = random.randint(100, 175)
@@ -338,5 +342,124 @@ def generate_single_cave_level():
     return level
 
 
+def createRoomMap():
+    grid = {}
+    width, height = 6, 6
+    x, y = 3, 3
+
+    startRoom = Room("start", x, y)
+    grid[(x, y)] = startRoom
+
+    current = startRoom
+    for _ in range(6):  # więcej niż 4!
+        while True:
+            dx, dy = random.choice([(1,0), (-1,0), (0,1), (0,-1)])  # dodaj pionowe
+            nx, ny = current.x + dx, current.y + dy
+            if (nx, ny) not in grid and 0 <= nx < width and 0 <= ny < height:
+                break
+        newRoom = Room("enemy", nx, ny)
+        grid[(nx, ny)] = newRoom
+        current.connections.append(newRoom)
+        newRoom.connections.append(current)
+        current = newRoom
+
+    current.room_type = "key"
+    exitRoom = Room("exit", current.x + 1 if current.x + 1 < width else current.x - 1, current.y)
+    grid[(exitRoom.x, exitRoom.y)] = exitRoom
+    current.connections.append(exitRoom)
+    exitRoom.connections.append(current)
+
+    return grid
+
+def add_passages(layout, directions):
+    h = len(layout)
+    w = len(layout[0])
+    if 'left' in directions:
+        layout[h // 2 - 1][0] = '.'
+        layout[h // 2][0] = '.'
+        layout[h // 2 - 1][1] = '.'
+        layout[h // 2][1] = '.'
+
+    if 'right' in directions:
+        layout[h // 2 - 1][w - 1] = '.'
+        layout[h // 2][w - 1] = '.'
+        layout[h // 2 - 1][w - 2] = '.'
+        layout[h // 2][w - 2] = '.'
+
+    if 'top' in directions:
+        layout[0][w // 2 - 1] = '.'
+        layout[0][w // 2] = '.'
+        layout[1][w // 2 - 1] = '.'
+        layout[1][w // 2] = '.'
+
+    if 'bottom' in directions:
+        layout[h - 1][w // 2 - 1] = '.'
+        layout[h - 1][w // 2] = '.'
+        layout[h - 2][w // 2 - 1] = '.'
+        layout[h - 2][w // 2] = '.'
+
+    return layout
 
 
+def stitchRoomsToLevel(grid):
+    minX = min(r.x for r in grid.values())
+    maxX = max(r.x for r in grid.values())
+    minY = min(r.y for r in grid.values())
+    maxY = max(r.y for r in grid.values())
+
+    tileWidth = len(roomTemplates["start"][0][0])
+    tileHeight = len(roomTemplates["start"][0])
+
+    levelHeight = (maxY - minY + 1) * tileHeight
+    levelWidth = (maxX - minX + 1) * tileWidth
+
+    levelMap = [["#" for _ in range(levelWidth)] for _ in range(levelHeight)]
+
+    for room in grid.values():
+        # Pobierz losowy szablon i zamień na listę list (mutable)
+        template = random.choice(roomTemplates[room.roomType])
+        layout = [list(row) for row in template]
+
+        # Ustal kierunki, w które prowadzą przejścia
+        directions = set()
+        for other in room.connections:
+            dx = other.x - room.x
+            dy = other.y - room.y
+            if dx == 1:
+                directions.add("right")
+            elif dx == -1:
+                directions.add("left")
+            elif dy == 1:
+                directions.add("bottom")
+            elif dy == -1:
+                directions.add("top")
+
+        # Otwórz ściany – dodaj "." w odpowiednich miejscach
+        if "left" in directions:
+            layout[tileHeight // 2][0] = "."
+            layout[tileHeight // 2][1] = "."
+        if "right" in directions:
+            layout[tileHeight // 2][-1] = "."
+            layout[tileHeight // 2][-2] = "."
+        if "top" in directions:
+            layout[0][tileWidth // 2] = "."
+            layout[1][tileWidth // 2] = "."
+        if "bottom" in directions:
+            layout[-1][tileWidth // 2] = "."
+            layout[-2][tileWidth // 2] = "."
+
+        # Pozycja w świecie
+        startX = (room.x - minX) * tileWidth
+        startY = (room.y - minY) * tileHeight
+
+        # Wklej pokój do levelMap
+        for y in range(tileHeight):
+            for x in range(tileWidth):
+                levelMap[startY + y][startX + x] = layout[y][x]
+
+    # Zamień listę list znaków na listę stringów
+    return ["".join(row) for row in levelMap]
+def generatePlayableLevel(window, onLevelChange=None):
+    roomMap = createRoomMap()
+    levelLines = stitchRoomsToLevel(roomMap)
+    return load_from_text_lines(levelLines, window, onLevelChange)

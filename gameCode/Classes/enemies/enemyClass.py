@@ -2,10 +2,6 @@ import random
 
 import pygame
 
-from gameCode.Classes.coinClass import Coin
-from gameCode.Classes.levels.levelElements.key import Key
-from gameCode.Classes.levels.levelManagment.levelClass import Level
-from gameCode.Classes.physicClass import Physic
 import pygame
 from gameCode.Classes.physicClass import Physic
 

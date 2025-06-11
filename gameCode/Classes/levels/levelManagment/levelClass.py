@@ -1,10 +1,15 @@
 import pygame
 
+from gameCode.Classes.enemies.ghost import GhostEnemy
+from gameCode.Classes.enemies.robugs import RobugEnemy
+
+
 class Level:
     def __init__(self, tiles, player, enemies, coins, key, door, chests, width, height, NPCs):
         self.tiles = tiles
         self.player = player
         self.enemies = enemies
+        self.enemyBuffer = []
         self.coins = coins
         self.chests = chests
         self.NPCs = NPCs
@@ -14,6 +19,7 @@ class Level:
         self.cameraY = 0
         self.key = key
         self.door = door
+        self.lastActivationCheck = 0
         tileSize = 50
         tileCountW = width // tileSize
         tileCountH = height // tileSize
@@ -31,6 +37,8 @@ class Level:
     def update(self, obstacles, window):
         self.player.tickPosition(self.levelWidth)
         self.door.tick(self.player, window)
+        self.activateEnemiesNearPlayer()
+        self.cullDistantEnemies()
         for k in self.key:
             k.tick(self.player)
         for c in self.chests:
@@ -71,6 +79,39 @@ class Level:
 
         self.player.draw(window, self.cameraX, self.cameraY)
 
+    def activateEnemiesNearPlayer(self):
+        px = self.player.positionX
+        py = self.player.positionY
+        # Dystans aktywacji — ekran + zapas
+        activationRangeX = 800
+        activationRangeY = 600
 
+        for enemyData in self.enemyBuffer[:]:
+            tag, x, y = enemyData
+            if abs(x - px) < activationRangeX and abs(y - py) < activationRangeY:
+                if tag == "E":
+                    self.enemies.append(GhostEnemy(x, y, self.player.level))
+                elif tag == "R":
+                    self.enemies.append(RobugEnemy(x, y, self.player.level))
+                self.enemyBuffer.remove(enemyData)
+                if pygame.time.get_ticks() - self.lastActivationCheck < 500:
+                    return
+                self.lastActivationCheck = pygame.time.get_ticks()
 
+    def cullDistantEnemies(self):
+        px = self.player.positionX
+        py = self.player.positionY
+        maxDistance = 1400  # dopasuj do ekranu / mapy
+        stillActive = []
+        for enemy in self.enemies:
+            ex, ey = enemy.positionX, enemy.positionY  # albo enemy.x / enemy.y
+            if abs(ex - px) < maxDistance and abs(ey - py) < maxDistance:
+                stillActive.append(enemy)
+            else:
+                # opcjonalnie: zapisz z powrotem do buffer
+                if isinstance(enemy, GhostEnemy):
+                    self.enemyBuffer.append(("E", ex, ey))
+                elif isinstance(enemy, RobugEnemy):
+                    self.enemyBuffer.append(("R", ex, ey))
+        self.enemies = stillActive
 

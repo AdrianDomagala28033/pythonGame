@@ -104,6 +104,7 @@ def load_from_text_lines(lines, window, onLevelChange=None):
     NPCs = []
     quests = []
     player = Player(window)
+    enemyBuffer = []
 
     for y, line in enumerate(lines):
         line = line.rstrip("\n")  # nie używamy .strip()
@@ -138,9 +139,9 @@ def load_from_text_lines(lines, window, onLevelChange=None):
                 player.positionX = world_x
                 player.positionY = world_y
             elif char == "E":
-                enemies.append(GhostEnemy(world_x, world_y, player.level))
+                enemyBuffer.append(("E", world_x, world_y))
             elif char == "R":
-                enemies.append(RobugEnemy(world_x, world_y, player.level))
+                enemyBuffer.append(("R", world_x, world_y))
             elif char == "C":
                 coins.append(Coin(world_x, world_y))
             elif char == "K":
@@ -157,6 +158,7 @@ def load_from_text_lines(lines, window, onLevelChange=None):
     level_width = len(lines[0].strip()) * tile_size
     level_height = len(lines) * tile_size
     level = Level(tiles, player, enemies, coins, key, door, chests, level_width, level_height, NPCs)
+    level.enemyBuffer = enemyBuffer
     return level
 
 def createWeaponFromDict(data):
