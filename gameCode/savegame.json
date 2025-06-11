@@ -1,7 +1,7 @@
 {
-    "player_x": 872.5,
+    "player_x": 862.5,
     "player_y": 486,
-    "coins": 276,
+    "coins": 312,
     "weaponInventory": [
         {
             "tag": "sword",
@@ -21,5 +21,5 @@
         }
     ],
     "itemInventory": [],
-    "health": 34
+    "health": 39
 }

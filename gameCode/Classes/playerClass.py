@@ -18,7 +18,10 @@ class Player(Physic):
         self.standImages = scaleAnimationFrames(load_animation_frames(
             "./images/playerAnimation/idleCharacter.png", frame_width=19, frame_height=30, rows=1))
         self.jumpImg = pygame.image.load("./images/playerAnimation/jumpingCharacter.png")
-        self.walkImg = [pygame.image.load(f"./images/playerAnimation/walkCharacter{x}.png") for x in range(1, 7)]
+        self.walkImg = [pygame.image.load(f"./images/playerAnimation/walkAnimation/walkCharacter{x}.png") for x in range(1, 7)]
+        self.shootImages = [pygame.image.load(f"./images/playerAnimation/shootAnimation/shoot{x}.png") for x in range(1, 8)]
+        self.attackImages = [pygame.image.load(f"./images/playerAnimation/meleeAttackAnimation/attack{x}.png") for x in range(1, 5)]
+        self.takeDamageImage = [pygame.image.load(f"./images/playerAnimation/takeDamageAnimation/damage{x}.png") for x in range(1, 4)]
 
         # === STATYSTYKI ===
         self.maxHealth = 100
@@ -54,11 +57,17 @@ class Player(Physic):
         self.walkIndex = 0
         self.jumpIndex = 0
         self.standIndex = 0
+        self.shootIndex = 0
+        self.attackIndex = 0
+        self.damageIndex = 0
 
         # === MISC ===
         self.tag = "player"
         self.lastAutosaveTime = pygame.time.get_ticks()
         self.autosaveInterval = 500
+        self.isShooting = False
+        self.isAttacking = False
+        self.tookedDamage = False
 
         # === QUESTY ===
         from gameCode.Classes.quests.questManager import QuestManager
@@ -77,6 +86,7 @@ class Player(Physic):
         selectedWeapon = self.inventory.getSelectedWeapon()
         if selectedWeapon and selectedWeapon.tag == "sword" and keys[pygame.K_q]:
             selectedWeapon.slash(self, enemies)
+            self.isAttacking = True
 
         if self.invulnerable:
             self.invulnerable_timer -= 1
@@ -102,8 +112,11 @@ class Player(Physic):
         if keys[pygame.K_c]:
             weapon = self.inventory.getSelectedWeapon()
             if weapon.tag == "bow":
-                self.shoot(window)
-                weapon.tick(window)
+                self.isShooting = True
+
+
+
+
 
         self.wantInteract = keys[pygame.K_e]
 
@@ -126,6 +139,7 @@ class Player(Physic):
         for e in enemies:
             if self.hitbox.colliderect(e.hitbox) and not self.invulnerable:
                 self.health -= e.damage
+                self.tookedDamage = True
                 self.knockbackTimer = 10
                 self.invulnerable = True
                 self.invulnerable_timer = 30
@@ -139,18 +153,23 @@ class Player(Physic):
         weapon = self.inventory.getSelectedWeapon()
         if weapon:
             weapon.direction = self.direction
-            x_offset = -10 if self.direction > 0 else -65
-            weapon.shoot(self.positionX + x_offset, self.positionY + 30)
+            x_offset = -10 if self.direction > 0 else -55
+            weapon.shoot(self.positionX + x_offset, self.positionY + 35)
+            weapon.tick(window)
+
+
 
 
     # === RYSOWANIE ===
     def draw(self, window, cameraX=0, cameraY=0):
         self.drawUI(window)
-        self.walkAnimation(window, cameraX, cameraY)
+        self.characterAnimation(window, cameraX, cameraY)
         weapon = self.inventory.getSelectedWeapon()
         if weapon and weapon.tag == "bow":
             for proj in weapon.projectiles:
                 proj.draw(window, cameraX, cameraY)
+
+
 
     def drawUI(self, window):
         window.blit(pygame.image.load(f"./images/UI.png"), (10, 0))
@@ -163,13 +182,34 @@ class Player(Physic):
         window.blit(levelSurface, (550, 30))
         y = 60
 
-    def walkAnimation(self, window, cameraX, cameraY):
+    def characterAnimation(self, window, cameraX, cameraY):
         if self.jumping and self.direction > 0 and self.grounded and self.verVelocity != 0:
             img = pygame.transform.scale2x(self.jumpImg)
         elif self.jumping and self.direction < 0 and self.verVelocity != 0:
             img = pygame.transform.flip(pygame.transform.scale2x(self.jumpImg), True, False)
+        elif self.isShooting:
+            self.drawAnimation(self.shootIndex, self.shootImages, window, cameraX, cameraY)
+            self.shootIndex = (self.shootIndex + 0.25) % len(self.shootImages)
+            if self.shootIndex == 5:
+                self.shoot(window)
+            if self.shootIndex == 0:
+                self.isShooting = False
+            return
+        elif self.isAttacking:
+            self.drawAnimation(self.attackIndex, self.attackImages, window, cameraX, cameraY)
+            self.attackIndex = (self.attackIndex + 0.2) % len(self.attackImages)
+            if self.shootIndex == 0:
+                self.isAttacking = False
+            return
+        elif self.tookedDamage:
+            self.drawAnimation(self.damageIndex, self.takeDamageImage, window, cameraX, cameraY)
+            self.damageIndex += 0.2
+            if self.damageIndex >= len(self.takeDamageImage):
+                self.damageIndex = 0
+                self.tookedDamage = False
+            return
         elif self.horVelocity != 0:
-            self.changeDirection(window, cameraX, cameraY)
+            self.drawAnimation(self.walkIndex, self.walkImg, window, cameraX, cameraY)
             self.walkIndex = (self.walkIndex + 0.15) % len(self.walkImg)
             return
         else:
@@ -232,3 +272,19 @@ class Player(Physic):
         self.maxHealth += self.statBoostPerLevel['health']
         self.health = self.maxHealth
         self.xpToNextLevel = int(self.xpToNextLevel * 1.2)
+
+    def drawAnimation(self, index, images, window, cameraX, cameraY):
+        image = pygame.transform.scale2x(images[floor(index)])
+
+        # Zapisz środek-dół postaci
+        anchor = (self.positionX + self.width // 2, self.positionY + self.height)
+
+        if self.direction < 0:
+            image = pygame.transform.flip(image, True, False)
+
+        # Dopasuj rect do nowego obrazu i ustaw jego punkt zakotwiczenia
+        rect = image.get_rect()
+        rect.midbottom = anchor
+
+        # Narysuj
+        window.blit(image, (rect.x - cameraX, rect.y - cameraY))
