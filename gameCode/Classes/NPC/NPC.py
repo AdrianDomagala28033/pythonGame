@@ -17,3 +17,5 @@ class BaseNPC:
         self.dialogVisible = self.hitbox.colliderect(player.hitbox)
     def draw(self, window, cameraX=0, cameraY=0):
         window.blit(self.image, (self.positionX - cameraX, self.positionY - cameraY))
+    def isNearPlayer(self, player):
+        return (abs(player.positionX - self.positionX) < 120 and abs(player.positionY - self.positionY) < 50)

@@ -1,7 +1,9 @@
-import pygame.key
+from math import floor
 
 from gameCode.Classes.NPC.NPC import BaseNPC
+from gameCode.Classes.UI.panels.questOfferPanel import QuestOfferPanel
 from gameCode.fonts.fonts import addFont
+from gameCode.images.animations import scaleAnimationFrames, load_animation_frames
 
 
 class QuestNPC(BaseNPC):
@@ -10,13 +12,20 @@ class QuestNPC(BaseNPC):
         self.quests = quests
         self.questGiven = set()
         self.completed = set()
-
+        self.panel = None
+        self.dialogOpen = False
+        self.image = scaleAnimationFrames(load_animation_frames(
+            "./images/npc/animacjeNpc/sprite sheets/steampunk/masked_man.png", frame_width=32, frame_height=32, rows=1),
+            (100, 100))
+        self.standIndex = 0
 
     def tick(self, player):
         super().tick(player)
 
-    def draw(self, window, cameraX=0, cameraY=0):
-        super().draw(window, cameraX, cameraY)
+    def draw(self, window, cameraX=0, cameraY=0, player=None):
+        self.standIndex = (self.standIndex + 0.1) % len(self.image)
+        img = self.image[floor(self.standIndex)]
+        window.blit(img, (self.positionX - cameraX, self.positionY - cameraY))
         if self.dialogVisible:
             font = addFont("./fonts/Jacquard_24/Jacquard24-Regular.ttf", 24)
             availableQuests = [q for q in self.quests if q not in self.questGiven]
@@ -28,6 +37,11 @@ class QuestNPC(BaseNPC):
             elif completedQuests:
                 text = font.render("Naciśnij E, aby oddać zadanie", True, (0, 255, 0))
                 window.blit(text, (self.positionX - cameraX - 20, self.positionY - 40 - cameraY))
+        if self.dialogOpen and self.panel:
+            self.panel.draw(window)
 
-    def isNearPlayer(self, player):
-        return abs(player.positionX - self.positionX) < 50 and abs(player.positionY - self.positionY) < 50
+    def interact(self, player):
+        if not self.panel:
+            self.panel = QuestOfferPanel(self, player)  # lub QuestOfferPanel
+        else:
+            self.panel.toggle()

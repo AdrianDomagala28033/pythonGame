@@ -3,6 +3,7 @@ import random
 import pygame
 
 from gameCode.Classes.NPC.questNPC import QuestNPC
+from gameCode.Classes.NPC.upgradeNPC import UpgradeNPC
 from gameCode.Classes.coinClass import Coin
 from gameCode.Classes.enemies.ghost import GhostEnemy
 from gameCode.Classes.enemies.robugs import RobugEnemy
@@ -85,6 +86,9 @@ def load_from_file(file_path, window, onLevelChange=None):
                 chests.append(Chest(world_x, world_y, random.choice(["loot", "weapon"])))
             elif char == "Q":
                 npc = QuestNPC(world_x, world_y, loadQuestsFromFile("./Classes/quests/quests.json"))
+                NPCs.append(npc)
+            elif char == "U":
+                npc = UpgradeNPC(world_x, world_y, "./images/playerAnimation/nieUzywane/player9.png", "Mentor")
                 NPCs.append(npc)
 
     level_width = len(lines[0].strip()) * tile_size

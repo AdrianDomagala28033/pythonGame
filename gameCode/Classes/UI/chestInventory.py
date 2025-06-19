@@ -104,7 +104,10 @@ class InventoryUiExchange:
                 rect = pygame.Rect(x, y, slotSize, slotSize)
                 pygame.draw.rect(window, (100, 100, 100), rect, 2)
                 if weapon:
-                    icon = pygame.image.load(weapon.image)  # ważne: weapon.image musi być ścieżką
+                    if isinstance(weapon.image, pygame.Surface):
+                        icon = pygame.transform.scale(weapon.image, (50, 50))
+                    else:
+                        icon = pygame.transform.scale(pygame.image.load(weapon.image), (50, 50))
                     window.blit(icon, (x, y))
                     if pygame.Rect(x,y, slotSize, slotSize).collidepoint(mouseX, mouseY):
                         tooltipCandidate = weapon

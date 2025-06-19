@@ -45,6 +45,11 @@ class Inventory:
             return self.usableItems
         else:
             return None
+    def getWeaponByTag(self, tag):
+        for weapon in self.getWeaponList():
+            if weapon.tag == tag:
+                return weapon
+        return None
     def useItem(self, player):
         item = self.usableItems[self.selectedItemIndex]
         if item and item.usable:
@@ -67,8 +72,10 @@ class Inventory:
         for i, weapon in enumerate(self.weaponSlots):
             rect = pygame.Rect(x + i * (slotSize + spacing), y, slotSize, slotSize)
             pygame.draw.rect(window, (180, 180, 180), rect, border_radius=5)
-            if i == self.selectedWeaponIndex:
-                pygame.draw.rect(window, (0, 255, 0), rect, 3, border_radius=5)
+
             if weapon:
-                icon = pygame.image.load(weapon.image)
+                icon = pygame.transform.scale(pygame.image.load(weapon.image), (50, 50))
                 window.blit(icon, (rect.x, rect.y))
+
+    def saveInventory(self):
+        return [item.toDict() for item in self.usableItems]

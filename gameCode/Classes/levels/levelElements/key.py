@@ -1,7 +1,7 @@
 import pygame
 
-from gameCode.Classes.UI.InventoryItems.Item import Item
-from gameCode.Classes.UI.InventoryItems.itemType import ItemType
+from gameCode.Classes.gameplay.InventoryItems.ItemClass import Item
+from gameCode.Classes.gameplay.InventoryItems.itemType import ItemType
 
 
 class Key(Item):

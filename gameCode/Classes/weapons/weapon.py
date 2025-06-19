@@ -1,4 +1,4 @@
-from gameCode.Classes.UI.InventoryItems.itemType import ItemType
+from gameCode.Classes.gameplay.InventoryItems.itemType import ItemType
 
 
 class Weapon:
@@ -14,3 +14,10 @@ class Weapon:
             return dict(category="weapon", name = self.name, damage = self.damage, range = self.range, image=self.image, value=self.value, tag=self.tag)
     def getEffectiveDamage(self, playerLevel):
         return self.damage + int(playerLevel * 0.5)
+
+    def applyUpgrade(self, upgradeId):
+        print(f"🔥 Upgrade {upgradeId} applied to {self.name}")
+        if upgradeId == "bow_power_1":
+            self.damage += 5
+        elif upgradeId == "bow_speed_1":
+            self.cooldown = max(100, self.cooldown - 100)

@@ -36,5 +36,7 @@ def load_single_frame(sheet_path, frame_width, frame_height, frame_index=0, row=
 
     frame_rect = pygame.Rect(x, y, frame_width, frame_height)
     return sheet.subsurface(frame_rect)
-def scaleAnimationFrames(frames):
+def scaleAnimationFramesToDoubleSize(frames):
     return [pygame.transform.scale2x(frame) for frame in frames]
+def scaleAnimationFrames(frames, size):
+    return [pygame.transform.scale(frame, size) for frame in frames]

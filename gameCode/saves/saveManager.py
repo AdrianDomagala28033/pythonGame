@@ -1,12 +1,12 @@
 import json
 import os
 
-from gameCode.Classes.UI.InventoryItems.Item import Item
-from gameCode.Classes.UI.InventoryItems.itemType import ItemType
-from gameCode.Classes.UI.InventoryItems.potions import healEffect
+from gameCode.Classes.gameplay.InventoryItems.ItemClass import Item
+from gameCode.Classes.gameplay.InventoryItems.itemFactory import createFromDict
+from gameCode.Classes.gameplay.InventoryItems.itemType import ItemType
+from gameCode.Classes.gameplay.effects.effects import healEffect
 from gameCode.Classes.weapons.bowClass import Bow
 from gameCode.Classes.weapons.swordClass import Sword
-from gameCode.Classes.weapons.weapon import Weapon
 
 saveFile = "savegame.json"
 EFFECTS_MAP = {
@@ -28,13 +28,12 @@ def loadGame(filename="savegame.json"):
         data = json.load(f)
 
     # Odtwórz ekwipunek
-    weaponInventory = [loadItemFromDict(w) for w in data.get("weaponInventory", [])]
-    itemInventory = [loadItemFromDict(i) for i in data.get("itemInventory", [])]
+    weaponInventory = [loadWeaponFromDict(w) for w in data.get("weaponInventory", [])]
+    itemInventory = [createFromDict(i) for i in data.get("itemInventory", [])]
 
-    # Zwracamy wszystko
     return {
-        "coins": data["coins"],
-        "health": data["health"],
+        "coins": data.get("coins", 0),
+        "health": data.get("health", 100),
         "weaponInventory": weaponInventory,
         "itemInventory": itemInventory
     }
@@ -83,3 +82,23 @@ def filterUsedKeys(itemList):
         item for item in itemList
         if item is not None and not (item.itemType == ItemType.KEY and not item.usable)
     ]
+def loadWeaponFromDict(data: dict):
+    tag = data.get("tag")
+    if tag == "sword":
+        return Sword(
+                name=data["name"],
+                damage=data["damage"],
+                cooldown=data["cooldown"],
+                direction=data["direction"],
+                icon=data["icon"]
+        )
+    elif tag == "bow":
+        return Bow(
+                name=data["name"],
+                damage=data["damage"],
+                cooldown=data["cooldown"],
+                direction=data["direction"],
+                icon=data["icon"]
+        )
+    else:
+        raise ValueError(f"Nieznany typ broni: {data}")

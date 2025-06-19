@@ -2,11 +2,13 @@ import pygame
 from math import floor
 
 from gameCode.Classes.UI.Inventory import Inventory
+from gameCode.Classes.gameplay.effects.effects import createPoisonEffect
 from gameCode.Classes.physicClass import Physic
-from gameCode.Classes.weapons.bowClass import Bow
-from gameCode.Classes.weapons.swordClass import Sword
+from gameCode.Classes.upgrades.getSkillTrees import getPlayerSkillTree, getBowSkillTree, getSwordSkillTree
+from gameCode.Classes.weapons.weaponsList import bows, swords
 from gameCode.fonts.fonts import addFont
-from gameCode.images.animations import load_animation_frames, load_single_frame, scaleAnimationFrames
+from gameCode.images.animations import load_animation_frames, load_single_frame, scaleAnimationFrames, \
+    scaleAnimationFramesToDoubleSize
 from gameCode.levels.gameOver import gameOver
 from gameCode.saves.saveManager import saveGame, filterUsedKeys
 
@@ -15,7 +17,7 @@ class Player(Physic):
     def __init__(self, window):
         # === ANIMACJE ===
         self.image = pygame.transform.scale2x(load_single_frame("./images/playerAnimation/walkingCharacter.png", 21, 32, frame_index=2))
-        self.standImages = scaleAnimationFrames(load_animation_frames(
+        self.standImages = scaleAnimationFramesToDoubleSize(load_animation_frames(
             "./images/playerAnimation/idleCharacter.png", frame_width=19, frame_height=30, rows=1))
         self.jumpImg = pygame.image.load("./images/playerAnimation/jumpingCharacter.png")
         self.walkImg = [pygame.image.load(f"./images/playerAnimation/walkAnimation/walkCharacter{x}.png") for x in range(1, 7)]
@@ -28,13 +30,17 @@ class Player(Physic):
         self.health = self.maxHealth
         self.coins = 0
         self.hasKey = False
-        self.level = 1
+        self.level = 10
         self.xp = 0
         self.xpToNextLevel = 100
         self.statBoostPerLevel = {
             'health' : 10,
             'damage' : 1
         }
+        self.upgradePoints = 10
+        self.speed = 1
+        self.strength = 1
+        self.defense = 1
 
         # === POZYCJA / FIZYKA ===
         width = self.image.get_width()
@@ -50,8 +56,8 @@ class Player(Physic):
 
         # === INWENTARZ ===
         self.inventory = Inventory()
-        self.inventory.addWeapon(Sword("Basic Sword", 10, 100, self.direction, "./images/weapons/standardSword.PNG"))
-        self.inventory.addWeapon(Bow("Basic Bow", 12, 500, self.direction, "./images/weapons/standardBow.PNG"))
+        self.inventory.addWeapon(bows[0])
+        self.inventory.addWeapon(swords[0])
 
         # === ANIMACJE ===
         self.walkIndex = 0
@@ -69,9 +75,17 @@ class Player(Physic):
         self.isAttacking = False
         self.tookedDamage = False
 
-        # === QUESTY ===
+        # === QUESTY i UI ===
         from gameCode.Classes.quests.questManager import QuestManager
         self.questManager = QuestManager()
+        self.uiVisible = True
+
+        # === DRZEWKO ULEPSZEN ===
+        self.skillTrees = {
+            "player" : getPlayerSkillTree(),
+            "bow" : getBowSkillTree(self.inventory.getWeaponByTag("bow")),
+            "sword" : getSwordSkillTree(self.inventory.getWeaponByTag("sword"))
+        }
 
 
 
@@ -83,16 +97,12 @@ class Player(Physic):
         self.useInventory()
         self.handleJumpInput(keys, grounds)
 
-        selectedWeapon = self.inventory.getSelectedWeapon()
-        if selectedWeapon and selectedWeapon.tag == "sword" and keys[pygame.K_q]:
-            selectedWeapon.slash(self, enemies)
-            self.isAttacking = True
+        self.slash(keys, enemies)
 
         if self.invulnerable:
             self.invulnerable_timer -= 1
             if self.invulnerable_timer <= 0:
                 self.invulnerable = False
-
         if self.health <= 0:
             gameOver(window)
 
@@ -100,17 +110,20 @@ class Player(Physic):
     # === RUCH ===
     def move(self, keys, window):
         if keys[pygame.K_a]:
-            self.horVelocity = max(self.horVelocity - self.acc, -self.maxVelocity)
+            self.horVelocity = max(self.horVelocity - self.acc, -self.maxVelocity - self.speed)
             self.direction = -1
         if keys[pygame.K_d]:
-            self.horVelocity = min(self.horVelocity + self.acc, self.maxVelocity)
+
+            self.horVelocity = min(self.horVelocity + self.acc, self.maxVelocity + self.speed)
             self.direction = 1
 
         if keys[pygame.K_w]:
             self.inventory.useItem(self)
 
         if keys[pygame.K_c]:
+            self.inventory.selectedWeaponIndex = 1
             weapon = self.inventory.getSelectedWeapon()
+            print(weapon.damage)
             if weapon.tag == "bow":
                 self.isShooting = True
 
@@ -138,7 +151,8 @@ class Player(Physic):
     def enemyCollision(self, enemies):
         for e in enemies:
             if self.hitbox.colliderect(e.hitbox) and not self.invulnerable:
-                self.health -= e.damage
+                damageTaken = max(1, e.damage - self.defense)
+                self.health -= damageTaken
                 self.tookedDamage = True
                 self.knockbackTimer = 10
                 self.invulnerable = True
@@ -150,13 +164,25 @@ class Player(Physic):
 
     # === STRZELANIE / MIECZ ===
     def shoot(self, window):
-        weapon = self.inventory.getSelectedWeapon()
-        if weapon:
-            weapon.direction = self.direction
+        bow = next((w for w in self.inventory.getWeaponList() if w.tag == "bow"), None)
+        if bow:
+            bow.direction = self.direction
             x_offset = -10 if self.direction > 0 else -55
-            weapon.shoot(self.positionX + x_offset, self.positionY + 35)
-            weapon.tick(window)
+            bow.shoot(self.positionX + x_offset, self.positionY + 35)
+            bow.tick(window)
+    def slash(self, keys, enemies):
+        sword = next((w for w in self.inventory.getWeaponList() if w.tag == "sword"), None)
+        if sword and keys[pygame.K_q]:
+            sword.slash(self, enemies)
+            self.isAttacking = True
 
+            for item in self.inventory.getItemList():
+                if hasattr(item, "passiveEffect") and callable(item.passiveEffect):
+                    for enemy in enemies:
+                        print("🧪 Sprawdzam czy wróg w zasięgu...")
+                        if sword.enemyInRange(self, enemy):
+                            print("✅ Wróg w zasięgu! Nakładam efekt.")
+                            enemy.applyEffect(item.passiveEffect())
 
 
 
@@ -164,14 +190,16 @@ class Player(Physic):
     def draw(self, window, cameraX=0, cameraY=0):
         self.drawUI(window)
         self.characterAnimation(window, cameraX, cameraY)
-        weapon = self.inventory.getSelectedWeapon()
-        if weapon and weapon.tag == "bow":
-            for proj in weapon.projectiles:
+        bow = next((w for w in self.inventory.getWeaponList() if w.tag == "bow"), None)
+        if bow:
+            for proj in bow.projectiles:
                 proj.draw(window, cameraX, cameraY)
 
 
 
     def drawUI(self, window):
+        if not self.uiVisible:
+            return
         window.blit(pygame.image.load(f"./images/UI.png"), (10, 0))
         self.healthBar(window)
         self.inventory.drawInventory(window)
@@ -237,8 +265,6 @@ class Player(Physic):
         if keys[pygame.K_2]: self.inventory.selectedItemIndex = 1
         if keys[pygame.K_3]: self.inventory.selectedItemIndex = 2
         if keys[pygame.K_4]: self.inventory.selectedItemIndex = 3
-        if keys[pygame.K_5]: self.inventory.selectedWeaponIndex = 0
-        if keys[pygame.K_6]: self.inventory.selectedWeaponIndex = 1
 
 
     # === AUTOSAVE ===
@@ -255,7 +281,11 @@ class Player(Physic):
         })
 
     def interact(self):
-        pass
+        tree = self.skillTrees["player"]
+        if tree.canUnlock("bow_power_1", self):
+            unlocked = tree.unlock("bow_power_1", self)
+            if unlocked:
+                print("Odblokowano strength_1! Strength gracza:", self.strength)
 
     def tickPosition(self, levelWidth):
         self.positionX = max(0, min(self.positionX, levelWidth - self.width))

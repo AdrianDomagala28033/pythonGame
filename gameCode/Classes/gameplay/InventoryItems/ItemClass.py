@@ -15,12 +15,13 @@ class Item:
         else:
             print(self.name)
     def toDict(self):
-        return dict(category="item",
-                    name = self.name,
-                    description= self.description,
-                    value=self.value,
-                    type=self.itemType.name if self.itemType else None,
-                    icon=self.icon,
-                    effect=self.effect.__name__ if self.effect else None,
-                    usable=self.usable)
+        return {
+                "item_class": self.__class__.__name__,  # <--- KLUCZOWE
+                "name": self.name,
+                "description": self.description,
+                "value": self.value,
+                "type": self.itemType.name if self.itemType else None,
+                "icon": self.icon,
+                "usable": self.usable,
+        }
 

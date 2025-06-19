@@ -4,14 +4,15 @@ from gameCode.Classes.weapons.weapon import Weapon
 
 
 class Bow(Weapon):
-    def __init__(self, name, damage, cooldown, direction, icon=None):
+    def __init__(self, name, damage, cooldown, direction, icon=pygame.image.load("./images/weapons/standardBow.PNG")):
         super().__init__(name, damage, icon, value=0, range=0)
-        self.icon = icon
+        self.image = icon
         self.tag = "bow"
         self.cooldown = cooldown
         self.last_shot_time = 0
         self.projectiles = []
         self.direction = direction
+        self.upgradeLevel = 0
 
     def tick(self, window):
         if self.last_shot_time > 0:
@@ -31,6 +32,6 @@ class Bow(Weapon):
             "damage": self.damage,
             "cooldown": self.cooldown,
             "direction": self.direction,
-            "icon": self.icon
+            "icon": self.image
         }
 

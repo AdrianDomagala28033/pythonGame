@@ -6,3 +6,4 @@ class ItemType(Enum):
     UTILITY = "utility"
     KEY = "key"
     EXPANSION = "expansion"
+    ACCESSORY = "accessory"

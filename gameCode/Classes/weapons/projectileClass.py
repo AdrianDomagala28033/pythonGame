@@ -6,7 +6,7 @@ from gameCode.Classes.physicClass import Physic
 class Projectile(Physic):
     def __init__(self,x,y, direction):
         self.image = pygame.image.load('./images/weapons/BasicArrow.PNG')
-        super().__init__(x, y, self.image.get_width(), self.image.get_height(), 5, 7)
+        super().__init__(x, y, self.image.get_width(), self.image.get_height(), 9, 7)
         self.hitbox = pygame.Rect(self.positionX, self.positionY, self.width, self.height)
         self.direction = direction
         self.tag = "projectile"
@@ -44,5 +44,7 @@ class Projectile(Physic):
                 for e in enemy:
                     if arrow.hitbox.colliderect(e.hitbox):
                         arrow.active = False
-                        e.takeDamage(player.inventory.getSelectedWeapon().getEffectiveDamage(player.level), player)
+                        baseDamage = player.inventory.getSelectedWeapon().getEffectiveDamage(player.level)
+                        bonus = player.strength * 1
+                        e.takeDamage(baseDamage + bonus, player)
                         break

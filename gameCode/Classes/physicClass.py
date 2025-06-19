@@ -18,8 +18,10 @@ class Physic(GameObject):
         super().__init__(x, y, width, height)
         self.grounded = True
         self.hitbox = pygame.Rect(self.positionX, self.positionY, self.width, self.height)
+        self.effects = []
 
     def physicTick(self,player, obstacles):
+        self.effects = [e for e in self.effects if e.apply(self)]
         if(self.tag == "player"):
             self.movementX(obstacles)
             self.movementY(obstacles)
@@ -120,3 +122,6 @@ class Physic(GameObject):
                 self.jumping = True
         else:
             self.jumping = False
+
+    def applyEffect(self, effect):
+        self.effects.append(effect)

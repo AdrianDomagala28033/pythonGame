@@ -12,6 +12,7 @@ class Sword(Weapon):
         self.lastAttackTime = 0
         self.direction = direction
         self.icon = icon
+        self.upgradeLevel = 0
 
     def slash(self,player, enemies):
         now = pygame.time.get_ticks()
@@ -19,7 +20,9 @@ class Sword(Weapon):
             for e in enemies:
                 distance = abs(player.positionX - e.positionX)
                 if distance < self.range and abs(player.positionY - e.positionY) < player.height:
-                    e.takeDamage(self.getEffectiveDamage(player.level), player)
+                    baseDamage = self.getEffectiveDamage(player.level)
+                    bonus = player.strength * 1  # każdy punkt siły = +1 dmg (albo więcej)
+                    e.takeDamage(baseDamage + bonus, player)
                 self.lastAttackTime = now
     def toDict(self):
         return {
@@ -30,3 +33,7 @@ class Sword(Weapon):
             "direction": self.direction,
             "icon": self.icon
         }
+    def enemyInRange(self, player, enemy):
+        distance = abs(player.positionX - enemy.positionX)
+        vertical = abs(player.positionY - enemy.positionY)
+        return distance < self.range and vertical < player.height

@@ -1,5 +1,6 @@
 import pygame
 
+from gameCode.Classes.NPC.upgradeNPC import UpgradeNPC
 from gameCode.Classes.enemies.ghost import GhostEnemy
 from gameCode.Classes.enemies.robugs import RobugEnemy
 
@@ -45,6 +46,8 @@ class Level:
             c.tick(self.player)
         for npc in self.NPCs:
             npc.tick(self.player)
+            if hasattr(npc, "handleInput") and callable(npc.handleInput):
+                npc.handleInput(self.player, pygame.key.get_pressed())
         for enemy in self.enemies:
             enemy.tick(self.player, obstacles, window)
             if enemy.health <= 0:
@@ -74,7 +77,7 @@ class Level:
         for c in self.chests:
             c.draw(window, self.cameraX, self.cameraY)
         for npc in self.NPCs:
-            npc.draw(window, self.cameraX, self.cameraY)
+            npc.draw(window, self.cameraX, self.cameraY, self.player)
         self.door.draw(window, self.cameraX, self.cameraY)
 
         self.player.draw(window, self.cameraX, self.cameraY)

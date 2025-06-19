@@ -1,10 +1,11 @@
 import pygame
 import random
 
-from gameCode.Classes.UI.InventoryItems.potions import health_potion
 from gameCode.Classes.UI.chestInventory import ChestInventory
+from gameCode.Classes.gameplay.InventoryItems.items import PoisonAmulet
+from gameCode.Classes.gameplay.InventoryItems.potions import health_potion
 from gameCode.Classes.levels.levelElements.objects import Object
-from gameCode.Classes.weapons.bowClass import Bow
+from gameCode.Classes.weapons.weaponsList import bows
 
 
 class Chest(Object):
@@ -30,8 +31,9 @@ class Chest(Object):
         self.inventory = ChestInventory()
         if chestType == "loot":
             self.inventory.addItem(health_potion)
+            self.inventory.addItem(PoisonAmulet())
         elif chestType == "weapon":
-            self.inventory.addWeapon(Bow("Basic Bow", 12, 500, 1, "./images/weapons/standardBow.PNG"))
+            self.inventory.addWeapon(random.choice(bows))
             # self.inventory.addWeapon()
     def tick(self, player):
         self.detectPlayer(player)

@@ -1,12 +1,12 @@
 {
-    "player_x": 862.5,
-    "player_y": 486,
-    "coins": 312,
+    "player_x": 3532.0,
+    "player_y": 636,
+    "coins": 342,
     "weaponInventory": [
         {
             "tag": "sword",
             "name": "Basic Sword",
-            "damage": 10,
+            "damage": 13,
             "cooldown": 100,
             "direction": 1,
             "icon": "./images/weapons/standardSword.PNG"
@@ -15,11 +15,21 @@
             "tag": "bow",
             "name": "Basic Bow",
             "damage": 12,
-            "cooldown": 500,
+            "cooldown": 400,
             "direction": 1,
             "icon": "./images/weapons/standardBow.PNG"
         }
     ],
-    "itemInventory": [],
-    "health": 39
+    "itemInventory": [
+        {
+            "item_class": "PoisonAmulet",
+            "name": "Amulet trucizny",
+            "description": "Ka\u017cdy atak zatruwa przeciwnika",
+            "value": 200,
+            "type": "ACCESSORY",
+            "icon": "./images/playerAnimation/walkingCharacter.png",
+            "usable": false
+        }
+    ],
+    "health": 70
 }
